@@ -9,14 +9,12 @@ c5_pin_model_dump.txt
 *.qpg
 *.qtl
 *.qpf
-*.qsf
 *.qws
 *.sof
 *.bak
 *.qxp
 *.qarlog
 *.report
-*.rpt
 *.pin
 *.jdi
 *.done
