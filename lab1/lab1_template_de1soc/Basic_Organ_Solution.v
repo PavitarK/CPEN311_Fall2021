@@ -200,13 +200,38 @@ wire Sample_Clk_Signal;
 // Insert your code for Lab1 here!
 //
 //========================================================================================================================
+wire outclk;
+logic [23:0] tone_info;
+logic [17:0] finalcount; 
+/*
+Part A/C/D
+assign the tone frequency information via mux
+
+Display tone name on scope info A ***can combine into clk divider or make a completely seperate module?
+What's the better option/ convention? 
+*/ 
+
+always_comb begin 
+  case(SW[3:1])
+        3'b000: begin finalcount = 18'b1_0111_0101_0111_0010; tone_info = {character_D, character_lowercase_o}; end     //95602 getting 536Hz
+        3'b001: begin finalcount = 18'b1_0100_1100_1011_1011; tone_info = {character_R, character_lowercase_e}; end     //85179 getting 587Hz 
+        3'b010: begin finalcount = 18'b1_0010_1000_0110_0001; tone_info = {character_M, character_lowercase_i}; end     //75873 getting 659Hz 
+        3'b011: begin finalcount = 18'b1_0001_0111_1101_0001; tone_info = {character_F, character_lowercase_a}; end     //71633 getting 698Hz
+        3'b100: begin finalcount = 18'b1111_1001_0111_0001;   tone_info = {character_S, character_lowercase_o}; end     //63856 getting 783Hz  
+        3'b101: begin finalcount = 18'b1101_1101_1111_0010;   tone_info = {character_L, character_lowercase_a}; end     //56818 getting 880Hz  
+        3'b110: begin finalcount = 18'b1100_0101_1110_0011;   tone_info = {character_S, character_lowercase_i}; end     //50658 getting 987Hz   
+        3'b111: begin finalcount = 18'b1011_1010_1011_1001;   tone_info = {character_D, character_O, character_2}; end  //47801 getting 1046Hz  
+        default: begin finalcount = 18'bx; tone_info = {character_E,character_R, character_R}; end 
+  endcase      
+end 
+
+ 
+
 /*
   Part A       
-*/    
-wire outclk;
-
+*/
 //instatiate clock divider
-clk_divider clkDiv(.inclk(CLK_50M), .outclk(outclk), .frequency_sel(SW[3:1]));
+clk_divider clkDiv(.inclk(CLK_50M), .outclk(outclk), .finalcount(finalcount));
 
 assign Sample_Clk_Signal = outclk;
 
@@ -218,31 +243,6 @@ Note that the audio needs signed data - so convert 1 bit to 8 bits signed
 
 wire [7:0] audio_data;
 assign audio_data = SW[0] ? {(~Sample_Clk_Signal),{7{Sample_Clk_Signal}}} : 8'b0; 
-
-/*
-Part C 
-Display tone name on scope info A ***can combine into clk divider or make a completely seperate module?
-What's the better option/ convention? 
-*/ 
-
-logic [23:0] tone_info; 
-always_comb begin 
-  case(SW[3:1])
-        3'b000: tone_info = {character_D, character_lowercase_o};
-        3'b001: tone_info = {character_R, character_lowercase_e};
-        3'b010: tone_info = {character_M, character_lowercase_i}; 
-        3'b011: tone_info = {character_F, character_lowercase_a}; 
-        3'b100: tone_info = {character_S, character_lowercase_o};   
-        3'b101: tone_info = {character_L, character_lowercase_a};   
-        3'b110: tone_info = {character_S, character_lowercase_i};   
-        3'b111: tone_info = {character_D, character_O, character_2}; 
-        default: tone_info = {character_E};
-  endcase      
-end 
-
-//Part D
-
-
                 
 //=====================================================================================
 //
@@ -301,31 +301,31 @@ assign LCD_ON   = 1'b1;
 //The LCD scope and display
 LCD_Scope_Encapsulated_pacoblaze_wrapper LCD_LED_scope(
                         //LCD control signals
-                          .lcd_d(LCD_DATA),//don't touch
-                    .lcd_rs(LCD_RS), //don't touch
-                    .lcd_rw(LCD_RW), //don't touch
-                    .lcd_e(LCD_EN), //don't touch
-                    .clk(CLK_50M),  //don't touch
+                        .lcd_d(LCD_DATA),//don't touch
+                        .lcd_rs(LCD_RS), //don't touch
+                        .lcd_rw(LCD_RW), //don't touch
+                        .lcd_e(LCD_EN), //don't touch
+                        .clk(CLK_50M),  //don't touch
                           
-                        //LCD Display values
-                      .InH(8'hAA),
-                      .InG(8'hBB),
-                      .InF(8'h01),
-                       .InE(8'h23),
-                      .InD(8'h45),
-                      .InC(8'h67),
-                      .InB(8'h89),
-                     .InA(8'h00),
+                        //LCD Display values ***modified for part D ****
+                        .InH(8'hAA),
+                        .InG(8'hBB),
+                        .InF(8'h01),
+                        .InE(8'h23),
+                        .InD(8'h45),
+                        .InC(8'h67),
+                        .InB(8'h89),
+                        .InA(8'h00),
                           
-                     //LCD display information signals
-                         .InfoH({character_A,character_U}),
-                          .InfoG({character_S,character_W}),
-                          .InfoF({character_space,character_A}),
-                          .InfoE({character_N,character_space}),
-                          .InfoD({character_E,character_X}),
-                          .InfoC({character_A,character_M}),
-                          .InfoB({character_P,character_L}),
-                          .InfoA({character_E,character_exclaim}),
+                     //LCD display information signals ***modified for part D ****
+                         .InfoH({character_P,character_A}),
+                          .InfoG({character_V,character_I}),
+                          .InfoF({character_T,character_A}),
+                          .InfoE({character_R,character_S}),
+                          .InfoD({character_space,character_D}),
+                          .InfoC({character_E,character_1}),
+                          .InfoB({character_exclaim,character_exclaim}),
+                          .InfoA({character_space,character_space}),
                           
                   //choose to display the values or the oscilloscope
                           .choose_scope_or_LCD(choose_LCD_or_SCOPE),

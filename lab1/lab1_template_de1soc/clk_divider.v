@@ -1,11 +1,23 @@
-module clk_divider(inclk, outclk, frequency_sel); 
+module clk_divider(inclk, outclk, finalcount); 
     input inclk; 
-    input [2:0] frequency_sel;
+    input [17:0] finalcount;
     output reg outclk = 1'b0;  
 
-    logic [17:0] finalcount; 
     logic [17:0] cycle_count = 18'b0;
 
+    //cycle counter 
+    always@(posedge inclk) begin 
+        if(cycle_count == (finalcount -1))
+            begin 
+            outclk <= ~outclk; 
+            cycle_count <= 18'b1;  
+            end 
+        else 
+            cycle_count <= cycle_count + 1; 
+    end 
+endmodule
+
+    /*
     //select a frequency via Mux and 50MHz clock input
     always_comb begin 
         case(frequency_sel)
@@ -20,15 +32,4 @@ module clk_divider(inclk, outclk, frequency_sel);
         default: finalcount = 18'bx;
         endcase 
     end 
-
-    //cycle counter 
-    always@(posedge inclk) begin 
-        if(cycle_count == (finalcount -1))
-            begin 
-            outclk <= ~outclk; 
-            cycle_count <= 18'b1;  
-            end 
-        else 
-            cycle_count <= cycle_count + 1; 
-    end 
-endmodule
+    */
