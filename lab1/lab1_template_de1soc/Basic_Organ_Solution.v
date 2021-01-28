@@ -214,15 +214,15 @@ What's the better option/ convention?
 
 always_comb begin 
   case(SW[3:1])
-        3'b000: begin finalcount = 18'b1_0111_0101_0111_0010; tone_info = {character_D, character_lowercase_o}; tone_hex = 15'h536; end     //95602 getting 536Hz
-        3'b001: begin finalcount = 18'b1_0100_1100_1011_1011; tone_info = {character_R, character_lowercase_e}; tone_hex = 15'h587; end     //85179 getting 587Hz 
-        3'b010: begin finalcount = 18'b1_0010_1000_0110_0001; tone_info = {character_M, character_lowercase_i}; tone_hex = 15'h659; end     //75873 getting 659Hz 
-        3'b011: begin finalcount = 18'b1_0001_0111_1101_0001; tone_info = {character_F, character_lowercase_a}; tone_hex = 15'h698; end     //71633 getting 698Hz
-        3'b100: begin finalcount = 18'b1111_1001_0111_0001;   tone_info = {character_S, character_lowercase_o}; tone_hex = 15'h783; end     //63856 getting 783Hz  
-        3'b101: begin finalcount = 18'b1101_1101_1111_0010;   tone_info = {character_L, character_lowercase_a}; tone_hex = 15'h880; end     //56818 getting 880Hz  
-        3'b110: begin finalcount = 18'b1100_0101_1110_0011;   tone_info = {character_S, character_lowercase_i}; tone_hex = 15'h987; end     //50658 getting 987Hz   
-        3'b111: begin finalcount = 18'b1011_1010_1011_1001;   tone_info = {character_D, character_O, character_2}; tone_hex = 15'h1046; end  //47801 getting 1046Hz  
-        default: begin finalcount = 18'bx; tone_info = {character_E,character_R, character_R}; tone_hex = 16'hx; end 
+        3'b000: begin finalcount = 28'd95602; tone_info = {character_D, character_lowercase_o}; tone_hex = 16'h536; end     //95602 getting 536Hz
+        3'b001: begin finalcount = 28'd85179; tone_info = {character_R, character_lowercase_e}; tone_hex = 16'h587; end     //85179 getting 587Hz 
+        3'b010: begin finalcount = 28'd75873; tone_info = {character_M, character_lowercase_i}; tone_hex = 16'h659; end     //75873 getting 659Hz 
+        3'b011: begin finalcount = 28'd71633; tone_info = {character_F, character_lowercase_a}; tone_hex = 16'h698; end     //71633 getting 698Hz
+        3'b100: begin finalcount = 28'd63856; tone_info = {character_S, character_lowercase_o}; tone_hex = 16'h783; end     //63856 getting 783Hz  
+        3'b101: begin finalcount = 28'd56818; tone_info = {character_L, character_lowercase_a}; tone_hex = 16'h880; end     //56818 getting 880Hz  
+        3'b110: begin finalcount = 28'd50658; tone_info = {character_S, character_lowercase_i}; tone_hex = 16'h987; end     //50658 getting 987Hz   
+        3'b111: begin finalcount = 28'd47801; tone_info = {character_D, character_O, character_2}; tone_hex = 16'h1046; end  //47801 getting 1046Hz  
+        default: begin finalcount = 28'bx; tone_info = {character_E,character_R, character_R}; tone_hex = 16'hx; end 
   endcase      
 end 
 
@@ -246,6 +246,7 @@ wire [7:0] audio_data;
 assign audio_data = SW[0] ? {(~Sample_Clk_Signal),{7{Sample_Clk_Signal}}} : 8'b0; 
 
 /*Part E
+LEDs turn on and off at 1Hz rate back and forth along DE1
 */
 
 led_control led_control(.inclk(CLK_50M), .LED(LED));
@@ -314,14 +315,14 @@ LCD_Scope_Encapsulated_pacoblaze_wrapper LCD_LED_scope(
                         .clk(CLK_50M),  //don't touch
                           
                         //LCD Display values ***modified for part D ****
-                        .InH({SW[3], SW[2]}), //display switch positions
-                        .InG({SW[1], SW[0]}), //display switch positions
-                        .InF(8'h01),
-                        .InE(8'h23),
-                        .InD(8'h45),
-                        .InC(8'h67),
-                        .InB(tone_hex[15:8]),
-                        .InA(tone_hex[7:0]),
+                        .InH({3'h0, SW[3], 3'h0, SW[2]}), //display switch positions
+                        .InG({3'h0, SW[1], 3'h0, SW[0]}), //display switch positions
+                        .InF(8'hAA),
+                        .InE(8'hAA),
+                        .InD(8'hAA),
+                        .InC(8'hAA),
+                        .InB(tone_hex[15:8]),         //display tone numerical frequency
+                        .InA(tone_hex[7:0]),          //display tone numerical frequency
                           
                      //LCD display information signals ***modified for part D ****
                          .InfoH({character_P,character_A}),

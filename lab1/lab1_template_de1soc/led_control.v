@@ -9,28 +9,22 @@ module led_control(inclk, LED);
     `define S5 4'd5 //LED 5 is on
     `define S6 4'd6 //LED 6 is on
 
-
     //50Mhz Clock 
     input inclk; 
     output [7:0] LED; 
 
-    wire clk_1Hz; 
-
-    //temp reset
-    //logic reset = 1'b1; 
+    logic clk_1Hz; 
     logic [7:0] LED_reg;
-
-    reg [3:0] next_state = `S0; 
+    logic [3:0] next_state = `S0; 
     logic [3:0] current_state; 
 
     //controls light direction
-    reg bounce = 1'b1; 
-
+    logic bounce = 1'b1; //removing this will remove the latch? 
 
     assign LED = LED_reg;  
 
     //make a 1Hz clock via clk divider
-    clk_divider slow_clk(.inclk(inclk), .finalcount(28'd2), .outclk(clk_1Hz)); //should be d'50000000
+    clk_divider slow_clk(.inclk(inclk), .finalcount(28'd50000000), .outclk(clk_1Hz)); 
 
     //Flip Flop driving state controller
 	vDFF state_controller(.clk(clk_1Hz), .in(next_state), .out(current_state)); 
@@ -67,26 +61,19 @@ module led_control(inclk, LED);
     //state behaviour
     always @(*) begin 
         case(current_state)
-            `S0: begin 
-                LED_reg = 8'b0000001;
-                bounce = 1'b1; 
-                end 
-            `S1: LED_reg = 8'b0000010; 
-            `S2: LED_reg = 8'b0000100;
-            `S3: LED_reg = 8'b0001000;
-            `S4: LED_reg = 8'b0010000;
-            `S5: LED_reg = 8'b0100000;
-            `S6: begin 
-                LED_reg = 8'b1000000;
-                bounce = 1'b0; 
-                end 
-            default: LED_reg = 8'bx;
+            `S0: begin LED_reg = 8'b0000001; bounce = 1'b1; end 
+            `S1: begin LED_reg = 8'b0000010; bounce = bounce; end 
+            `S2: begin LED_reg = 8'b0000100; bounce = bounce; end
+            `S3: begin LED_reg = 8'b0001000; bounce = bounce; end
+            `S4: begin LED_reg = 8'b0010000; bounce = bounce; end
+            `S5: begin LED_reg = 8'b0100000; bounce = bounce; end
+            `S6: begin LED_reg = 8'b1000000; bounce = 1'b0;  end 
+            default: begin LED_reg = 8'bx; bounce = 1'bx; end
         endcase
     end
 endmodule 
 
 
-//Flip Flop Module from CPEN 211 lecture slides
 module vDFF(clk, in, out); 
 	input clk; 
 	input [3:0] in; 
