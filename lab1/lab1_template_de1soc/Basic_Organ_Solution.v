@@ -204,17 +204,15 @@ wire outclk;
 logic [23:0] tone_info;
 logic [15:0] tone_hex; 
 logic [17:0] finalcount; 
+
 /*
 Part A/C/D
-assign the tone frequency information via mux
-
-Display tone name on scope info A ***can combine into clk divider or make a completely seperate module?
-What's the better option/ convention? 
+assign all tone information via mux this is sent to the clkdivider and to the LCD output 
 */ 
 
 always_comb begin 
   case(SW[3:1])
-        3'b000: begin finalcount = 28'd95602; tone_info = {character_D, character_lowercase_o}; tone_hex = 16'h536; end     //95602 getting 536Hz
+        3'b000: begin finalcount = 28'd95602; tone_info = {character_D, character_lowercase_o}; tone_hex = 16'h523; end     //95602 getting 523Hz
         3'b001: begin finalcount = 28'd85179; tone_info = {character_R, character_lowercase_e}; tone_hex = 16'h587; end     //85179 getting 587Hz 
         3'b010: begin finalcount = 28'd75873; tone_info = {character_M, character_lowercase_i}; tone_hex = 16'h659; end     //75873 getting 659Hz 
         3'b011: begin finalcount = 28'd71633; tone_info = {character_F, character_lowercase_a}; tone_hex = 16'h698; end     //71633 getting 698Hz
@@ -226,18 +224,13 @@ always_comb begin
   endcase      
 end 
 
- 
-
-/*
-  Part A       
-*/
 //instatiate clock divider
 clk_divider clkDiv(.inclk(CLK_50M), .outclk(outclk), .finalcount(finalcount));
 
 assign Sample_Clk_Signal = outclk;
 
 /*
-Part B simple Mux 
+Part B simple Mux to implment a on/off switch 
 Audio Generation Signal
 Note that the audio needs signed data - so convert 1 bit to 8 bits signed
 */
@@ -249,6 +242,7 @@ assign audio_data = SW[0] ? {(~Sample_Clk_Signal),{7{Sample_Clk_Signal}}} : 8'b0
 LEDs turn on and off at 1Hz rate back and forth along DE1
 */
 
+//instatiate LED FSM 
 led_control led_control(.inclk(CLK_50M), .LED(LED));
                 
 //=====================================================================================

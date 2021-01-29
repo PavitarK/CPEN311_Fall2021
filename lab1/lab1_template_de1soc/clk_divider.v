@@ -1,16 +1,17 @@
 module clk_divider(inclk, outclk, finalcount); 
-    input inclk; 
-    input [27:0] finalcount;
-    output reg outclk = 1'b0;  
+    
+    input inclk; //fast clock 
+    input [27:0] finalcount; //number to count up to
+    output reg outclk = 1'b0;  //output slow clock 
 
-    logic [27:0] cycle_count = 28'b0;
+    logic [27:0] cycle_count = 28'b0; //internal counter 
 
     //cycle counter 
     always@(posedge inclk) begin 
         if(cycle_count == ((finalcount/2) - 1))
             begin 
             outclk <= ~outclk; 
-            cycle_count <= 28'b1; //TODO: used to be 1  
+            cycle_count <= 28'b1; 
             end 
         else 
             cycle_count <= cycle_count + 1; 

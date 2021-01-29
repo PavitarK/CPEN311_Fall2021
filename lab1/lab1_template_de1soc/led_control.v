@@ -20,11 +20,8 @@ module led_control(inclk, LED);
 
     logic clk_1Hz; 
     logic [7:0] LED_reg;
-    logic [3:0] next_state = `S0; 
+    logic [3:0] next_state = `S0; //assign initial state
     logic [3:0] current_state; 
-
-    //controls light direction
-    //logic bounce = 1'b1; //removing this will remove the latch? 
 
     assign LED = LED_reg;  
 

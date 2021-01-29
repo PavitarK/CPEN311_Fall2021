@@ -2,38 +2,35 @@
 
 module tb_clkdivider();
  
-    reg [2:0] frequency_sel; 
+    reg [27:0] finalcount; 
     wire outclk; 
     reg CLOCK_50; 
 
     //instantiate dut
-    clk_divder dut(.inclk(CLOCK_50), .outclk(outclk), .frequency_sel(frequency_sel)); 
+    clk_divider dut(.inclk(CLOCK_50), .outclk(outclk), .finalcount(finalcount)); 
 
-    //50Mhz clock
+    //clock switching forever
 	initial begin 
 	  CLOCK_50 = 0; 
-      frequency_sel = 3'b000; 
+      finalcount = 28'd10; 
 		forever begin 
 		#10 CLOCK_50 = !CLOCK_50; 
 		end 
+        
 	end 
-
-/*
+   
+   /* //testing different counts
     initial begin 
-//Test no input => 536 Hz
-        //frequency_sel = 3'b000; 
-        //#100000; 
-        //assert
-        //#10; 
+        #15
+        finalcount = 18'd5; 
+        #30 //should have 5 posedges
 
-// Test input b001 
-        //frequency_sel = 3'b001; 
-        //#100000; 
-        //assert
-        //#10
+        finalcount = 28'd10; //should have 6 posedges
+        #60; 
 
-
-    $display("Tests Finished Running");    
+        finalcount = 28'd4; //should have 5 posedges
+        #20; 
     end 
     */
+
 endmodule 
