@@ -237,13 +237,17 @@ wire    [3:0]   flash_mem_byteenable;
 //For Part C 
 wire clk_22kHz;
 wire [27:0] frequencyControl = 28'd2273; //get 22kHz frequency
+logic readNow; 
 
 //PART A 
 //fsm_flash_read reader();
 
 // Part B in fsm_flash 
+
+
 //Part C 
 clk_divider songSpeedClock(.inclk(CLOCK_50), .outclk(clk_22kHz), .finalcount(frequencyControl)); 
+clock_sync synchronizer(.CLOCK_50(CLOCK_50), async_clk(clk_22kHz), .sync_signal(readNow));
 
 flash flash_inst (
     .clk_clk                 (CLK_50M),
