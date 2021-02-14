@@ -1,8 +1,8 @@
 `timescale 1 ps / 1 ps
 
-module sound_out(clk, edgedetect, audio_data, reset, readdatavalid, sound, start, finish_sound);
+module sound_out(clk, edgedetect, audio_data, reset, readdatavalid, sound, start, finish_sound, direction);
     input [31:0] audio_data; 
-    input readdatavalid, reset, clk, edgedetect, start; 
+    input readdatavalid, reset, clk, edgedetect, start, direction; 
     output logic [7:0] sound; 
     output finish_sound; 
 
@@ -58,8 +58,15 @@ module sound_out(clk, edgedetect, audio_data, reset, readdatavalid, sound, start
     always_ff @(posedge clk) begin 
         case(state)
             wait1: buffer <= audio_data[31:0];
-            audio1: sound <= buffer[15:8];
-            audio2: sound <= buffer[31:24];
+            audio1: 
+                if(direction) 
+                    sound <= buffer[15:8];
+                else 
+                    sound <= buffer[31:24];
+            audio2: if(direction) 
+                        sound <= buffer[31:24];
+                    else 
+                        sound <= buffer[15:8];
             default: sound <= sound; 
         endcase
     end  

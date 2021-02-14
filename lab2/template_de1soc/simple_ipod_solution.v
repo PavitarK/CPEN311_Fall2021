@@ -237,6 +237,8 @@ wire            flash_mem_readdatavalid;
 wire    [3:0]   flash_mem_byteenable;
 wire finish_read;
 wire finish_sound; 
+wire direction; 
+wire start_key; 
 
 //For Part C 
 wire clk_22kHz;
@@ -244,10 +246,10 @@ wire [27:0] divider22 = 28'd2273; //get 22kHz frequency
 wire readNow; //was logic b4 sound wokred
 
 //PART A 
-fsm_flash_read reader(.CLOCK_50(CLOCK_50), .reset(1'b0), .start(1'b1), 
+fsm_flash_read reader(.CLOCK_50(CLOCK_50), .reset(1'b0), .start(start_key), 
                       .flash_mem_read(flash_mem_read), 
                       .flash_mem_address(flash_mem_address), 
-                      .finish_read(finish_read), .sound_finish(finish_sound));
+                      .finish_read(finish_read), .sound_finish(finish_sound), .direction(direction));
 
 // Part B in fsm_flash 
 
@@ -261,7 +263,9 @@ clock_sync edgedetect(.CLOCK_50(CLOCK_50), .async_clk(clk_22kHz), .edgedetect(re
 //audio output controller
 sound_out soundOut(.clk(CLOCK_50), .edgedetect(readNow), .audio_data(flash_mem_readdata), 
                     .reset(1'b0), .readdatavalid(flash_mem_readdatavalid), .sound(audio_data), 
-                    .start(finish_read), .finish_sound(finish_sound));
+                    .start(finish_read), .finish_sound(finish_sound), .direction(direction));
+
+keyboard_control keyRead(.clk(CLOCK_50), .key(kbd_received_ascii_code), .startstop(start_key), .direction(direction));
 
 flash flash_inst (
     .clk_clk                 (CLK_50M),
@@ -279,12 +283,6 @@ flash flash_inst (
             
 
 assign Sample_Clk_Signal = Clock_1KHz;
-
-//Audio Generation Signal
-//Note that the audio needs signed data - so convert 1 bit to 8 bits signed
-
-
-
 
 //======================================================================================
 // 

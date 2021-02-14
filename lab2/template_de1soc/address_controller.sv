@@ -1,5 +1,5 @@
-module address_controller(CLOCK_50, reset, get_address, address_to_read);
-    input CLOCK_50, reset, get_address; 
+module address_controller(CLOCK_50, reset, get_address, address_to_read, direction);
+    input CLOCK_50, reset, get_address, direction; 
     output [22:0] address_to_read; 
 
 
@@ -11,13 +11,23 @@ module address_controller(CLOCK_50, reset, get_address, address_to_read);
     always_ff @(posedge CLOCK_50 or posedge reset) begin 
         if(reset)
             address_to_read <= start;
-        else if (address_to_read == finish)
-            address_to_read <= start;
-        else if(get_address)
-            address_to_read <= address_to_read + 1;
+        else if(get_address) begin 
+            if(direction) //if direction is forward
+                begin 
+                    if(address_to_read == finish)
+                        address_to_read <= start; 
+                    else
+                        address_to_read <= address_to_read + 1;
+                end
+            else begin //if direction is backward
+                if(address_to_read == start)
+                    address_to_read <= finish; 
+                else
+                address_to_read <= address_to_read - 1;     
+            end 
+        end
         else 
             address_to_read <= address_to_read;
     end 
-
 endmodule 
 

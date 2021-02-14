@@ -1,8 +1,9 @@
 `timescale 1 ps / 1 ps
 
-module fsm_flash_read(CLOCK_50, reset, start, flash_mem_read, flash_mem_address, finish_read, sound_finish);
+module fsm_flash_read(CLOCK_50, reset, start, flash_mem_read, flash_mem_address,
+                     direction, finish_read, sound_finish);
 
-    input start, reset, CLOCK_50, sound_finish; 
+    input start, reset, CLOCK_50, sound_finish, direction; 
     output logic flash_mem_read; 
     output finish_read;
     output [22:0] flash_mem_address; 
@@ -22,7 +23,7 @@ module fsm_flash_read(CLOCK_50, reset, start, flash_mem_read, flash_mem_address,
     assign finish_read = state[2];
 
     //get the next address
-    address_controller get(.CLOCK_50(CLOCK_50), .reset(reset), .get_address(get_address), .address_to_read(flash_mem_address));
+    address_controller get(.CLOCK_50(CLOCK_50), .reset(reset), .get_address(get_address), .address_to_read(flash_mem_address), .direction(direction));
 
     //state controller
     always_ff @(posedge CLOCK_50 or posedge reset) begin 
