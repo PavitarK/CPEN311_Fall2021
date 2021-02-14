@@ -239,10 +239,12 @@ wire finish_read;
 wire finish_sound; 
 wire direction; 
 wire start_key; 
+wire speed_up_event, speed_down_event; //moved from line 475
+wire speed_reset_event; // moved from 558
 
 //For Part C 
 wire clk_22kHz;
-wire [27:0] divider22 = 28'd2273; //get 22kHz frequency
+wire [27:0] divider22; //controllers frequency division
 wire readNow; //was logic b4 sound wokred
 
 //PART A 
@@ -265,7 +267,11 @@ sound_out soundOut(.clk(CLOCK_50), .edgedetect(readNow), .audio_data(flash_mem_r
                     .reset(1'b0), .readdatavalid(flash_mem_readdatavalid), .sound(audio_data), 
                     .start(finish_read), .finish_sound(finish_sound), .direction(direction));
 
+//part e
 keyboard_control keyRead(.clk(CLOCK_50), .key(kbd_received_ascii_code), .startstop(start_key), .direction(direction));
+
+//part f
+speed_controller frequencyControl(.CLOCK_50(CLOCK_50), .divisor(divider22), .reset(speed_reset_event), .speedUp(speed_up_event), .speedDown(speed_down_event));
 
 flash flash_inst (
     .clk_clk                 (CLK_50M),
@@ -468,7 +474,7 @@ LCD_Scope_Encapsulated_pacoblaze_wrapper LCD_LED_scope(
 //
 //=====================================================================================
 
-wire speed_up_event, speed_down_event;
+
 
 //Generate 1 KHz Clock
 Generate_Arbitrary_Divided_Clk32 
@@ -550,7 +556,7 @@ make_speedown_pulse
  );
 
 
-wire speed_reset_event; 
+
 
 doublesync 
 key2_doublsync
