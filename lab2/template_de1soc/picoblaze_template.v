@@ -10,7 +10,9 @@ parameter clk_freq_in_hz = 25000000
 				input clk,
 				input [7:0] input_data,
 			   output wire [23:0] sseg,
-         output reg led_0 
+         output reg led_0, 
+         input [7:0] audio_data, 
+         input interrupt 
 
 			     );
 
@@ -29,7 +31,7 @@ wire[7:0]  out_port;
 reg[7:0]  in_port;
 wire  write_strobe;
 wire  read_strobe;
-reg  interrupt;
+//reg  interrupt;
 wire  interrupt_ack;
 wire  kcpsm3_reset;
 
@@ -102,18 +104,18 @@ pacoblaze3 led_8seg_kcpsm
       end
  end
 
- always @ (posedge clk or posedge interrupt_ack)  //FF with clock "clk" and reset "interrupt_ack"
- begin
-      if (interrupt_ack) //if we get reset, reset interrupt in order to wait for next clock.
-            interrupt <= 0;
-      else
-		begin 
-		      if (event_1hz)   //clock enable
-      		      interrupt <= 1;
-          		else
-		            interrupt <= interrupt;
-      end
- end
+//  always @ (posedge clk or posedge interrupt_ack)  //FF with clock "clk" and reset "interrupt_ack"
+//  begin
+//       if (interrupt_ack) //if we get reset, reset interrupt in order to wait for next clock.
+//             interrupt <= 0;
+//       else
+// 		begin 
+// 		      if (event_1hz)   //clock enable
+//       		      interrupt <= 1;
+//           		else
+// 		            interrupt <= interrupt;
+//       end
+//  end
 
 //  --
 //  ----------------------------------------------------------------------------------------------------------------------------------
@@ -128,6 +130,7 @@ pacoblaze3 led_8seg_kcpsm
  begin
     case (port_id[7:0])
         8'h0:    in_port <= input_data;
+        8'h1:    in_port <= audio_data; 
         default: in_port <= 8'bx;
     endcase
 end

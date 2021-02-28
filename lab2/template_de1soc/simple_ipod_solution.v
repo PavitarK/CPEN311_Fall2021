@@ -123,9 +123,9 @@ output                      DRAM_WE_N;
 //=======================================================
 // Input and output declarations
 logic CLK_50M;
-logic  [7:0] LED;
+logic  [9:0] LED;
 assign CLK_50M =  CLOCK_50;
-assign LEDR[7:0] = LED[7:0];
+assign LEDR[9:0] = LED[9:0];
 
 //Character definitions
 
@@ -740,11 +740,13 @@ picoblaze_template
 .clk_freq_in_hz(25000000)
 ) 
 picoblaze_template_inst(
-                        .led(LED[7:1]),
+                        .led(LED[9:2]),
                         .clk(CLK_50M),
                         .input_data({4'h0,sync_SW[3:0]}),
 								.sseg(sseg),
-                                .led_0(LED[0])
+                                .led_0(LED[0]),
+                                .audio_data(audio_data),
+                                .interrupt(readNow)
                  );
 
 

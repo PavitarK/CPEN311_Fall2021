@@ -14,11 +14,12 @@
                     ;
                     ;
                     CONSTANT LED_port, 80               ;8 simple LEDs. Is an OUTPUT port.
-			        CONSTANT DATA_IN_PORT, 00	        ;input data port. this is an INPUT port.
+			        CONSTANT DATA_IN_PORT, 00	        ;input data port. this is an INPUT port. 
                     CONSTANT SSEG_PORT0, 40
 					CONSTANT SSEG_PORT1, 20
 					;CONSTANT SSEG_PORT2, 10
                     CONSTANT LED0_port, 10              ; assign port number to led0
+                    CONSTANT AUDIO_DATA, 01              ;GETS AUDIO DATA
                  
                 
                     ;**************************************************************************************
@@ -36,8 +37,12 @@
                     CONSTANT ISR_preserve_s1, 01        ;Preserve s1 contents during ISR
                     CONSTANT ISR_preserve_s2, 02        ;Preserve s2 contents during ISR
                     CONSTANT ISR_preserve_s3, 03        ;Preserve s3 contents during ISR
+                    CONSTANT ISR_preserve_s4, 08
                     ;
                     CONSTANT LED_pattern, 04            ;remember state of LEDs (8-bit counter in this case)
+                    CONSTANT COUNTER, 05                ;flash addition counter
+                    CONSTANT SUM_OF_DATA_1, 06           ;low bits of sum
+                    CONSTANT SUM_OF_DATA_2, 07           ;high bits of sum  
                    
                     ;
                     ;**************************************************************************************
@@ -304,9 +309,100 @@
                     ; The interrupt is used purely to provide a 1 second heart beat binary counter pattern
                     ; on the 8 LEDs.
                     ;
-                    ISR: STORE s0, ISR_preserve_s0           ;preserve register
-                         FETCH s0, ISR_preserve_s0
-                         RETURNI ENABLE
+                    ISR: STORE s0, ISR_preserve_s0          ;preserve register 
+                         STORE s1, ISR_preserve_s1
+                         STORE s2, ISR_preserve_s2
+                         STORE s3, ISR_preserve_s3
+                         STORE s4, ISR_preserve_s4
+                         INPUT s1, AUDIO_DATA               ;get the audio data
+                        
+                         ; GET ALL MY OLD VALUES 
+                         FETCH s2, SUM_OF_DATA_1              ; get the lower bits of summed data
+                         FETCH s3, SUM_OF_DATA_2              ; get the higher bits of summed data
+                         FETCH s4, COUNTER                    ; flash additions counter
+                         TEST s1, 80                          ; check if negative
+                         CALL C, POSITIVE                     ; if negative get the abs
+                    
+
+                    ADD_DATA: ADD s2, s1                    ; add new data to low sum data  
+                              ADDCY s3, 00                  ; Add carry over if there is any
+                    
+                    INCREMENT_COUNTER: ADD s4, 01           ; increment my counter
+                    
+                    CHECK_256: JUMP C, UPDATE_LED       ; if carry is high we reached 256 and update display 
+                                                            ; else continue 
+
+                    STORE_DATA: STORE s2, SUM_OF_DATA_1     ; store all values and finish
+                                STORE s3, SUM_OF_DATA_2
+                                STORE s4, COUNTER 
+                                                            ;STORE s5?
+                                FETCH s0, ISR_preserve_s0  
+                                FETCH s1, ISR_preserve_s1
+                                FETCH s2, ISR_preserve_s2
+                                FETCH s3, ISR_preserve_s3
+                                FETCH s4, ISR_preserve_s4    
+                                RETURNI ENABLE
+                    
+                    UPDATE_LED: AND s0, s0                  ;remove carry flag
+                                SL0 s3                      ;shift left and check carry
+                                JUMP NC, BIT6               ;if no carry then bit 7 is 0 
+                                LOAD s5, FF                 ; else load output LEDs with 1111_1111
+                                OUTPUT s5, LED_port
+                                JUMP RESET_ALL_VAL          ; then end
+                                
+                    
+                    BIT6:       SL0 s3                      ;repeat process 
+                                JUMP NC, BIT5               
+                                LOAD s5, FE                 ; load with 1111_1110
+                                OUTPUT s5, LED_port         
+                                JUMP RESET_ALL_VAL   
+
+                    BIT5:       SL0 s3
+                                JUMP NC, BIT4
+                                LOAD s5, FC                 ; 1111_1100
+                                OUTPUT s5, LED_port
+                                JUMP RESET_ALL_VAL
+                    
+                    BIT4:       SL0 s3
+                                JUMP NC, BIT3
+                                LOAD s5, F8
+                                OUTPUT s5, LED_port
+                                JUMP RESET_ALL_VAL
+
+                    BIT3:       SL0 s3
+                                JUMP NC, BIT2
+                                LOAD s5, F0
+                                OUTPUT s5, LED_port
+                                JUMP RESET_ALL_VAL
+
+                    BIT2:       SL0 s3
+                                JUMP NC, BIT1
+                                LOAD s5, E0
+                                OUTPUT s5, LED_port
+                                JUMP RESET_ALL_VAL    
+
+                    BIT1:       SL0 s3
+                                JUMP NC, BIT0
+                                LOAD s5, C0
+                                OUTPUT s5, LED_port
+                                JUMP RESET_ALL_VAL  
+
+                    BIT0:       SL0 s3                  ;if zero then output average 0 
+                                JUMP NC, RESET_ALL_VAL  
+                                LOAD s5, 80
+                                OUTPUT s5, LED_port
+                                JUMP RESET_ALL_VAL                                                        
+
+                    RESET_ALL_VAL:  LOAD s2, 00                 ;reset sum of low data
+                                    LOAD s3, 00                 ; reset sum of high data
+                                    LOAD s4, 00                 ; reset counter 
+                                    LOAD s5, 00                 ;reset led output??? Or should i keep it? 
+                                    JUMP STORE_DATA
+
+                    POSITIVE: SUB s1, 01
+                              XOR s1, FF
+                              RETURN 
+                        
                     ;
                     ;
                     ;**************************************************************************************
