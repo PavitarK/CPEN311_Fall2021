@@ -54,10 +54,11 @@ module tb_fsm_flash_read();
 
     logic start, reset, CLOCK_50,clk_22kHz;
     logic flash_mem_read ,finish_read, finish_sound; 
+    logic direction; 
     logic [22:0] flash_mem_address; 
 
     fsm_flash_read dut(.CLOCK_50(CLOCK_50), .reset(1'b0), .start(start), .flash_mem_read(flash_mem_read), 
-                        .flash_mem_address(flash_mem_address), .finish_read(finish_read), .sound_finish(finish_sound));
+                        .flash_mem_address(flash_mem_address), .finish_read(finish_read), .sound_finish(finish_sound), .direction(direction));
 
   //  clock_sync sync(.CLOCK_50(CLOCK_50), .async_clk(clk_22kHz), .edgedetect(edgedetect));
 
@@ -67,6 +68,7 @@ module tb_fsm_flash_read();
          start = 0; 
          reset = 0; 
          CLOCK_50 = 0; 
+         direction = 1; 
         forever begin 
             #1;
             CLOCK_50 = !CLOCK_50; 
@@ -91,6 +93,11 @@ module tb_fsm_flash_read();
         #30; 
         finish_sound =1; 
         #2; 
+        finish_sound = 0; 
+        #5; 
+        finish_sound = 1; 
+        direction = 0; 
+        #10; 
         finish_sound = 0; 
     end 
 

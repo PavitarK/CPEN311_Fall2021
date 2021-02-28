@@ -218,7 +218,10 @@ parameter character_exclaim=8'h21;          //'!'
 wire Clock_1KHz, Clock_1Hz;
 wire Sample_Clk_Signal;
 wire [7:0] audio_data;
-// {~Sample_Clk_Signal,{7{Sample_Clk_Signal}}}; //generate signed sample audio signal
+
+//for 7seg picoblaze 
+wire [3:0] sync_SW;
+wire [23:0] sseg;
 
 //=======================================================================================================================
 //
@@ -627,12 +630,24 @@ begin
 end
 
 
-assign Seven_Seg_Data[0] = regd_actual_7seg_output[3:0];
-assign Seven_Seg_Data[1] = regd_actual_7seg_output[7:4];
-assign Seven_Seg_Data[2] = regd_actual_7seg_output[11:8];
-assign Seven_Seg_Data[3] = regd_actual_7seg_output[15:12];
-assign Seven_Seg_Data[4] = regd_actual_7seg_output[19:16];
-assign Seven_Seg_Data[5] = regd_actual_7seg_output[23:20];
+assign Seven_Seg_Data[0] = sseg[3:0];
+assign Seven_Seg_Data[1] = sseg[7:4];
+assign Seven_Seg_Data[2] = sseg[11:8];
+assign Seven_Seg_Data[3] = sseg[15:12];
+assign Seven_Seg_Data[4] = sseg[19:16];
+assign Seven_Seg_Data[5] = sseg[23:20];
+
+
+//TODO ADD 27:24 
+//TODO ADD 31:28
+
+
+// assign Seven_Seg_Data[0] = regd_actual_7seg_output[3:0];
+// assign Seven_Seg_Data[1] = regd_actual_7seg_output[7:4];
+// assign Seven_Seg_Data[2] = regd_actual_7seg_output[11:8];
+// assign Seven_Seg_Data[3] = regd_actual_7seg_output[15:12];
+// assign Seven_Seg_Data[4] = regd_actual_7seg_output[19:16];
+// assign Seven_Seg_Data[5] = regd_actual_7seg_output[23:20];
     
 assign actual_7seg_output =  scope_sampling_clock_count;
 
@@ -691,6 +706,46 @@ audio_control(
 //   End Audio controller code
 //
 //========================================================================================================================
-                    
+
+//========================================================================================================================
+//
+//  PicoBlaze Instantiation 
+//
+//======================================================================================================================== 
+
+    
+doublesync syncsw3(.indata(SW[3]),
+                      .outdata(sync_SW[3]),
+                          .clk(CLK_50M),
+                          .reset(1'b1));                
+                          
+
+doublesync syncsw2(.indata(SW[2]),
+                      .outdata(sync_SW[2]),
+                          .clk(CLK_50M),
+                          .reset(1'b1));    
+
+doublesync syncsw1(.indata(SW[1]),
+                      .outdata(sync_SW[1]),
+                          .clk(CLK_50M),
+                          .reset(1'b1)); 
+
+doublesync syncsw0(.indata(SW[0]),
+                      .outdata(sync_SW[0]),
+                          .clk(CLK_50M),
+                          .reset(1'b1));                          
             
+picoblaze_template
+#(
+.clk_freq_in_hz(25000000)
+) 
+picoblaze_template_inst(
+                        .led(LED[7:1]),
+                        .clk(CLK_50M),
+                        .input_data({4'h0,sync_SW[3:0]}),
+								.sseg(sseg),
+                                .led_0(LED[0])
+                 );
+
+
 endmodule

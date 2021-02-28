@@ -14,7 +14,7 @@ module keyboard_control(clk, key, startstop, direction);
     parameter startUp = 8'h45;
     parameter forward = 8'h66; //forward F
     parameter forwardUp = 8'h46;
-    parameter character_lowercase_r = 8'h72; //optional
+   
 
     //states_direction_start
      parameter check_key = 6'b000_000;
@@ -75,6 +75,15 @@ endmodule
 
 module tb_keyboard_control(); 
 
+    parameter backward = 8'h62; //backward B
+    parameter backwardUp =8'h42;
+    parameter stop = 8'h64; //stop D
+    parameter stopUp =8'h44;
+    parameter start = 8'h65; //start E
+    parameter startUp = 8'h45;
+    parameter forward = 8'h66; //forward F
+    parameter forwardUp = 8'h46;
+
     logic clk, startstop,direction; 
     logic [7:0] key; 
 
@@ -91,13 +100,16 @@ module tb_keyboard_control();
 
     initial begin 
         #10; 
-        key = 8'h65;
+        key = start;
 
         #20; 
-        key = 8'h64;
+        key = stop;
         #20; 
-        key = 8'h62;
+        key = backward;
         #20; 
-        key = 8'h65;
+        key = start;
+        #10; 
+        key = forward; 
+        
     end 
 endmodule 

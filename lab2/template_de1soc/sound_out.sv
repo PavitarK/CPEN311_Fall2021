@@ -74,17 +74,17 @@ endmodule
 
 module tb_sound_out();
 
-    logic CLOCK_50,clk_22kHz, edgedetect, reset, readdatavalid, flash_mem_read, finish_read; 
+    logic CLOCK_50,clk_22kHz, edgedetect, reset, readdatavalid, flash_mem_read, finish_read, direction; 
     logic [31:0] audio_data; 
     logic [22:0] flash_mem_address;
     logic [7:0] sound; 
     logic finish_sound; 
 
     sound_out dut(.clk(CLOCK_50), .edgedetect(edgedetect), .audio_data(audio_data), .reset(reset), 
-                    .readdatavalid(readdatavalid), .sound(sound), .start(finish_read), .finish_sound(finish_sound));
+                    .readdatavalid(readdatavalid), .sound(sound), .start(finish_read), .finish_sound(finish_sound), .direction(direction));
 
     fsm_flash_read fsm(.CLOCK_50(CLOCK_50), .reset(1'b0), .start(1'b1), .flash_mem_read(flash_mem_read), 
-                        .flash_mem_address(flash_mem_address), .finish_read(finish_read), .sound_finish(finish_sound));
+                        .flash_mem_address(flash_mem_address), .finish_read(finish_read), .sound_finish(finish_sound),.direction(direction));
 
     clock_sync sync(.CLOCK_50(CLOCK_50), .async_clk(clk_22kHz), .edgedetect(edgedetect));
 
@@ -93,6 +93,7 @@ module tb_sound_out();
             reset = 0; 
             readdatavalid = 0; 
             CLOCK_50 = 0; 
+            direction = 1; 
             forever begin 
                 #5;
                 CLOCK_50 = !CLOCK_50; 
