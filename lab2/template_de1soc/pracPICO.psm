@@ -157,10 +157,10 @@
                     ;
         cold_start: LOAD s0, 00                         ;clear 1 second counter and clear LEDs
                     STORE s0, LED_pattern
-                    OUTPUT s0, LED_port
-                    OUTPUT s0, LED0_port
+                    OUTPUT s0, LED_port                 ; clear leds
+                    OUTPUT s0, LED0_port                ; clear led0
                     ;
-                    ENABLE INTERRUPT                    ;enable one second heart beat
+                    ENABLE INTERRUPT                    ;enable on every readNow
               
             	
 					
@@ -168,9 +168,8 @@
 					;**************************************************************************************
                     ; Main program
                     ;**************************************************************************************
-                    ;
-                    ; Display welcome message for design
-                    ; Blink LEDR0 
+                    ; 
+                    ; Blink LED0 
 					
       main_program: LOAD s0, 01 
                     OUTPUT s0, LED0_port
@@ -316,7 +315,7 @@
                          STORE s4, ISR_preserve_s4
                          INPUT s1, AUDIO_DATA               ;get the audio data
                         
-                         ; GET ALL MY OLD VALUES 
+                ;;;;;;;;;;;;;;GET ALL MY OLD VALUES;;;;;;;;;;;;;;;;;;;;
                          FETCH s2, SUM_OF_DATA_1              ; get the lower bits of summed data
                          FETCH s3, SUM_OF_DATA_2              ; get the higher bits of summed data
                          FETCH s4, COUNTER                    ; flash additions counter
@@ -329,7 +328,7 @@
                     
                     INCREMENT_COUNTER: ADD s4, 01           ; increment my counter
                     
-                    CHECK_256: JUMP C, UPDATE_LED       ; if carry is high we reached 256 and update display 
+                    CHECK_256: JUMP C, UPDATE_LED           ; if carry is high we reached 256 and update display 
                                                             ; else continue 
 
                     STORE_DATA: STORE s2, SUM_OF_DATA_1     ; store all values and finish
@@ -343,7 +342,7 @@
                                 FETCH s4, ISR_preserve_s4    
                                 RETURNI ENABLE
                     
-                    UPDATE_LED: AND s0, s0                  ;remove carry flag
+                    UPDATE_LED: AND s0, s0                  ;remove carry flag from counter increment
                                 SL0 s3                      ;shift left and check carry
                                 JUMP NC, BIT6               ;if no carry then bit 7 is 0 
                                 LOAD s5, FF                 ; else load output LEDs with 1111_1111
@@ -396,10 +395,10 @@
                     RESET_ALL_VAL:  LOAD s2, 00                 ;reset sum of low data
                                     LOAD s3, 00                 ; reset sum of high data
                                     LOAD s4, 00                 ; reset counter 
-                                    LOAD s5, 00                 ;reset led output??? Or should i keep it? 
+                                    LOAD s5, 00                 ;reset led output? might be unecessary
                                     JUMP STORE_DATA
 
-                    POSITIVE: SUB s1, 01
+                    POSITIVE: SUB s1, 01                        ;Handle making flash read positive
                               XOR s1, FF
                               RETURN 
                         
