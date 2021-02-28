@@ -636,18 +636,6 @@ assign Seven_Seg_Data[2] = sseg[11:8];
 assign Seven_Seg_Data[3] = sseg[15:12];
 assign Seven_Seg_Data[4] = sseg[19:16];
 assign Seven_Seg_Data[5] = sseg[23:20];
-
-
-//TODO ADD 27:24 
-//TODO ADD 31:28
-
-
-// assign Seven_Seg_Data[0] = regd_actual_7seg_output[3:0];
-// assign Seven_Seg_Data[1] = regd_actual_7seg_output[7:4];
-// assign Seven_Seg_Data[2] = regd_actual_7seg_output[11:8];
-// assign Seven_Seg_Data[3] = regd_actual_7seg_output[15:12];
-// assign Seven_Seg_Data[4] = regd_actual_7seg_output[19:16];
-// assign Seven_Seg_Data[5] = regd_actual_7seg_output[23:20];
     
 assign actual_7seg_output =  scope_sampling_clock_count;
 

@@ -104,19 +104,6 @@ pacoblaze3 led_8seg_kcpsm
       end
  end
 
-//  always @ (posedge clk or posedge interrupt_ack)  //FF with clock "clk" and reset "interrupt_ack"
-//  begin
-//       if (interrupt_ack) //if we get reset, reset interrupt in order to wait for next clock.
-//             interrupt <= 0;
-//       else
-// 		begin 
-// 		      if (event_1hz)   //clock enable
-//       		      interrupt <= 1;
-//           		else
-// 		            interrupt <= interrupt;
-//       end
-//  end
-
 //  --
 //  ----------------------------------------------------------------------------------------------------------------------------------
 //  -- KCPSM3 input ports 
