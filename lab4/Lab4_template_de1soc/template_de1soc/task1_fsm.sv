@@ -20,9 +20,15 @@ always @(*) begin
                     end
         counter_inc: begin 
                         if(counter <= 8'd255) state <= array_fill;
-                        else if (counter > 8'255) state <= done;
+                        else if (counter > 8'd255) state <= done;
                         counter <= counter + 1;
                      end
         done: begin state <= done; end
+        default: begin 
+            state <= 5'bzzzzz; 
+            counter <= counter; 
+        end
+    endcase 
 end
+endmodule 
 

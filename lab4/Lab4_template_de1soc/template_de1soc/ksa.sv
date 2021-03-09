@@ -38,11 +38,13 @@ assign LEDR[9:0] = LED[9:0];
 
     logic clk; 
     logic reset_n; 
+    reg [7:0] s[256]; 
+    logic done_flag; 
 
     assign reset_n = KEY[3]; 
 
     //SevenSegmentDisplayDecoder sseg(.ssOut(), .nIn()); 
-
+    task1_fsm fillArray(.s(s), .done_flag(done_flag));
 
 
 endmodule 
