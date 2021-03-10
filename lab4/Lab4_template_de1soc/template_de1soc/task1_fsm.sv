@@ -11,7 +11,7 @@ parameter counter_inc = 5'b00100;
 parameter done = 5'b00001;
 
 reg [4:0] state = start;
-reg [7:0] counter = 8'd50;
+reg [7:0] counter = 0;
 logic [7:0] out_mem; 
 logic wren = 0;
 assign done_flag = state[0];
