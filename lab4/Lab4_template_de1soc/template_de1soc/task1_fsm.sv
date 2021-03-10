@@ -1,4 +1,5 @@
-module task1_fsm(s, done_flag);
+module task1_fsm(clk, s, done_flag);
+input clk; 
 output reg [7:0] s[256];
 output done_flag;
 
@@ -9,9 +10,14 @@ parameter done = 5'b00001;
 
 reg [4:0] state = start;
 reg [7:0] counter = 0;
+logic [7:0] out_mem; 
 assign done_flag = state[0];
+ 
 
-always @(*) begin
+
+s_memory RAM1(.address(counter), .clock(clk), .data(counter), .wren(state[1]), .q(out_mem));
+
+always @(posedge clk) begin
     case(state)
         start: begin state <= array_fill; end
         array_fill: begin 
