@@ -37,10 +37,10 @@ assign CLK_50M =  CLOCK_50;
 assign LEDR[9:0] = LED[9:0];
 
     logic wren, wren1, wren2, fsm1_active, fsm2_active; 
-    logic [7:0] address, counter1, counter2, data, out_mem; 
+    logic [7:0] address, counter1, address2, data2, out_mem; 
     logic reset_n; 
     reg [7:0] s[256]; 
-    logic done_flag; 
+    logic done_flag_fsm1, fsm2_done; 
 
     assign reset_n = KEY[3]; 
 
@@ -51,11 +51,11 @@ assign LEDR[9:0] = LED[9:0];
             address = counter1;  
             data = counter1; 
         end 
-        // else if(fsm2_active) begin 
-        //     wren = wren2; 
-        //     address = counter2;
-        //     data = counter2;  
-        // end 
+        else if(fsm2_active) begin 
+            wren = wren2; 
+            address = counter2;
+            data = data2;  
+        end 
         else begin 
             wren = wren;
             address = address; 
@@ -63,8 +63,13 @@ assign LEDR[9:0] = LED[9:0];
         end 
     end 
 
-    task1_fsm fillArray(.clk(CLOCK_50),.s(s), .done_flag(done_flag), .wren(wren1), .counter(counter1), .fsm1_active(fsm1_active));
+    assign fsm2_active = !fsm2_done; 
 
+    task1_fsm fillArray(.clk(CLOCK_50),.s(s), .done_flag(done_flag_fsm1), .wren(wren1), .counter(counter1), .fsm1_active(fsm1_active));
+    task2_fsm task2(.clk(CLOCK_50), .s(s), .fsm1_done(done_flag_fsm1), .out_mem(out_mem), 
+                    .secret_key(secret_key), .done_flag(fsm2_done), .wren(wren2), 
+                    .address(address2), .data(data2));
+    
     s_memory RAM1(.address(address), .clock(CLOCK_50), .data(data), .wren(wren), .q(out_mem));
 
 endmodule 

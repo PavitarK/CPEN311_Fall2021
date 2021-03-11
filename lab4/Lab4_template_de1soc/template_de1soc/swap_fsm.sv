@@ -1,54 +1,99 @@
-module swap_fsm(clk, counter_i, counter_j, s, swap_flag, swap_done, s_out);
+module swap_fsm(clk, counter_i, counter_j, s, swap_flag, swap_done, s_out, wren, address, out_mem, data);
 input clk;
 input swap_flag;
 input logic [7:0] counter_i;
 input logic [7:0] counter_j;
+input [7:0] out_mem; 
 input logic [7:0] s[256];
+output [7:0] address; 
 output swap_done;
-output logic [7:0] s_out[256];
+output logic [7:0] s_out[256]; //can remove? 
+output logic wren; 
+output logic [7:0] data; 
 
-parameter start = 5'b00000;
-parameter s_out_assign = 5'b00010;
-parameter swap_state_j = 5'b00100;
-parameter swap_state_i = 5'b01000;
-parameter done = 5'b00001;
+parameter start         = 8'b0000_0000;
+parameter get_i         = 8'b0000_0010;
+parameter get_j         = 8'b0000_0011;
+parameter wait1         = 8'b0000_0100;
+parameter wait2         = 8'b0000_0101; 
+parameter swap_state_j  = 8'b0001_0100;
+parameter swap_state_i  = 8'b0001_1000;
+parameter wait3         = 8'b0001_1001;
+parameter wait4         = 8'b0001_1011;
+parameter done          = 8'b1000_0000;
 
+logic [7:0] temp_i, temp_j; 
 reg [4:0] state = start;
 
-assign swap_done = state[0];
+assign swap_done = state[7];
+assign wren = state[4];
 
-//
+/*
+wait
+get s[i]
+store s[i]
+get s[j]
+store s[j]
+put s[j] in s[i]
+put s[i] in s]j
+finish
+*/
 
 always_ff @(posedge clk) begin
     case (state)
         start: 
         begin
-            if(swap_flag) state <= s_out_assign;
+            if(swap_flag) state <= get_i;
             else state <= start;
+            address <= counter_i; //keep this as whatever the counter in task2fsm is until we need to read alternate values
         end
-        s_out_assign:
-        begin
-            s_out <= s;
-            state <= swap_state_i; 
+
+        get_i: begin
+            address <= counter_i;
+            state <= wait1; 
         end
-        swap_state_i: 
-        begin
-            s_out[counter_i] <= counter_j;
-            state <= wait_state;
+
+        wait1: state <= store_i;
+
+        store_i: begin 
+            state <= get_j; 
+            temp_i <= out_mem; //temp <= s[i]
+        end 
+
+        get_j: begin 
+            state <= wait2; 
+            address <=counter_j; 
+        end 
+        
+        wait2: state <= store_j; 
+
+        store_j: begin 
+            state <= swap_state_i;  
+            temp_j <= out_mem; 
+        end 
+    
+        swap_state_i: begin
+            address <= counter_i;
+            state <= wait3;
+            data = temp_j; 
         end
-        wait_state: state <= swap_state_j;
-        swap_state_j:
-        begin
-             s_out[counter_j] <= counter_i;
-            state <= done;
+
+        wait3: state <= swap_state_j;
+
+        swap_state_j: begin
+             address <= counter_j;
+             data <= temp_i;
+             state <= wait4; 
         end
-        done:
-        begin
-            state <= start;
-        end
-        begin
+
+        wait4: state <= done; 
+
+        done: state <= start;
+        default: begin
             state <= 5'bzzzzz;
-            s_out <= s_out;
+            s_out <= s_out; //can remove? 
+            address = address; 
+            data = data; 
         end
     endcase
 end
