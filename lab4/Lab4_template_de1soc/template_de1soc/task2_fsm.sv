@@ -9,9 +9,11 @@ output done_flag;
 
 lgoic swap_flag;
 logic swap_done;
+logic wren; 
 logic [7:0] counter_i = 0;
 logic [7:0] counter_j = 0;
 logic [7:0] array_func[256];
+logic [7:0] out_mem; 
 
 parameter start = 5'b00000;
 parameter j_logc = 5'b00010;
@@ -24,6 +26,7 @@ reg [4:0] state = start;
 assign done_flag = state[0];
 assign swap_flag = state[3];
 assign array_func = s;
+assign wren = state[4];
 
 swap_fsm swap_fsm(.clk(clk), .counter_i(counter_i), .counter_j(counter_j), .s(array_func), .swap_flag(swap_flag), .swap_done(swap_done), .s_out(array_func));
 
@@ -36,7 +39,7 @@ always_ff @(posedge clk) begin
         end
         j_logic: 
         begin 
-            counter_j <= counter_j + array_func[counter_i] + secret_key[counter_i % 3];
+            counter_j <= counter_j + out_mem + secret_key[counter_i % 3];
             state <= counter_inc
         end
         counter_inc:

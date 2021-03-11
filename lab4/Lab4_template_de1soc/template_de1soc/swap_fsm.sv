@@ -17,23 +17,26 @@ reg [4:0] state = start;
 
 assign swap_done = state[0];
 
-always_ff @(clk) begin
+//
+
+always_ff @(posedge clk) begin
     case (state)
         start: 
         begin
-            if(swap_flag) state <= swap_state;
+            if(swap_flag) state <= s_out_assign;
             else state <= start;
         end
         s_out_assign:
         begin
             s_out <= s;
+            state <= swap_state_i; 
         end
         swap_state_i: 
         begin
             s_out[counter_i] <= counter_j;
             state <= wait_state;
         end
-        wait_state: state <= swap_state_j
+        wait_state: state <= swap_state_j;
         swap_state_j:
         begin
              s_out[counter_j] <= counter_i;
