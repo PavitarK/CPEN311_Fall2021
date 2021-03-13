@@ -1,12 +1,14 @@
+`timescale 1 ps / 1 ps
+
 module swap_fsm(clk, counter_i, counter_j, s, swap_flag, swap_done, s_out, wren, address, out_mem, data);
 input clk;
 input swap_flag;
 input logic [7:0] counter_i;
 input logic [7:0] counter_j;
-input [7:0] out_mem; 
+input logic [7:0] out_mem; 
 input logic [7:0] s[256];
-output [7:0] address; 
-output swap_done;
+output logic [7:0] address; 
+output logic swap_done;
 output logic [7:0] s_out[256]; //can remove? 
 output logic wren; 
 output logic [7:0] data; 
@@ -102,3 +104,72 @@ always_ff @(posedge clk) begin
     endcase
 end
 endmodule
+
+module tb_swap_fsm();
+
+   logic clk, wren, swap_done, swap_flag; 
+   logic [7:0] counter_i, counter_j, out_mem, address, data; 
+   logic [7:0] s[256];
+   logic [7:0] s_out[256];
+
+    swap_fsm dut(clk, counter_i, counter_j, s, swap_flag, swap_done, s_out, wren, address, out_mem, data);
+
+    initial begin 
+            clk = 0; 
+            swap_flag = 0; 
+            counter_i = 0; 
+            counter_j = 4;
+            out_mem = 0; 
+        forever begin 
+            #1
+            clk = !clk; 
+        end 
+    end 
+
+    initial begin 
+        //address should be i=0 and should stay in start state 
+        #5;
+
+        //state machine starts
+        //address is i=0 
+        swap_flag = 1; 
+
+        //state goes into wait1
+        #2;
+        out_mem = 8'd50;  
+        #2;
+
+        //entering store i state temp_i should get whatever the out_mem is holding
+        #2; 
+
+        //entering get_j 
+        //address is j=4
+
+        #2; 
+        //enter wait2
+        out_mem = 8'd2; 
+        #2;
+        //temp_j gets 2 
+        #2 
+        //starting swap 
+        //address get i=o
+        //data gets tempj = 2
+        #2;
+        //entering wait3
+        #2; 
+        //next swap 
+        //address get j=4 
+        //data data i=0
+        #2; 
+        //entering wait 4
+        #2; 
+        //endtering done 
+        //done flag should go up
+        swap_flag = 0; 
+
+        
+
+    end 
+
+
+endmodule 
