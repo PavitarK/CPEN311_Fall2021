@@ -37,12 +37,19 @@ assign CLK_50M =  CLOCK_50;
 assign LEDR[9:0] = LED[9:0];
 
     logic wren, wren1, wren2, fsm1_active, fsm2_active; 
-    logic [7:0] address, counter1, address2, data2, out_mem; 
+    logic [7:0] address, counter1, counter2, address2, data2, out_mem; 
     logic reset_n; 
     reg [7:0] s[256]; 
     logic done_flag_fsm1, fsm2_done; 
+    logic [7:0] secret_key [3];
+    logic data; 
 
-    assign reset_n = KEY[3]; 
+    assign reset_n = KEY[3];
+    assign fsm2_active = !fsm2_done; 
+    assign secret_key = '{8'b0 ,8'b0000_0010 ,8'b0100_1001}; 
+    // assign secret_key[2] = 8'b0100_1001;  
+    // assign secret_key[1] = 8'b0000_0010; //{6'b0, SW[9], SW[8]}; 
+    // assign secret_key[0] = 8'b0; //SW[7:0]; 
 
     //mux for RAM1 signals 
     always begin 
@@ -63,8 +70,7 @@ assign LEDR[9:0] = LED[9:0];
         end 
     end 
 
-    assign fsm2_active = !fsm2_done; 
-
+   
     task1_fsm fillArray(.clk(CLOCK_50),.s(s), .done_flag(done_flag_fsm1), .wren(wren1), .counter(counter1), .fsm1_active(fsm1_active));
     task2_fsm task2(.clk(CLOCK_50), .s(s), .fsm1_done(done_flag_fsm1), .out_mem(out_mem), 
                     .secret_key(secret_key), .done_flag(fsm2_done), .wren(wren2), 

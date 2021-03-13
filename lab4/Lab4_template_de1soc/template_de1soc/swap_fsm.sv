@@ -16,6 +16,8 @@ parameter get_i         = 8'b0000_0010;
 parameter get_j         = 8'b0000_0011;
 parameter wait1         = 8'b0000_0100;
 parameter wait2         = 8'b0000_0101; 
+parameter store_i       = 8'b0000_0111; 
+parameter store_j       = 8'b0000_1111; 
 parameter swap_state_j  = 8'b0001_0100;
 parameter swap_state_i  = 8'b0001_1000;
 parameter wait3         = 8'b0001_1001;
@@ -23,7 +25,7 @@ parameter wait4         = 8'b0001_1011;
 parameter done          = 8'b1000_0000;
 
 logic [7:0] temp_i, temp_j; 
-reg [4:0] state = start;
+reg [7:0] state = start;
 
 assign swap_done = state[7];
 assign wren = state[4];
@@ -31,8 +33,10 @@ assign wren = state[4];
 /*
 wait
 get s[i]
+wait 
 store s[i]
 get s[j]
+wait
 store s[j]
 put s[j] in s[i]
 put s[i] in s]j

@@ -4,15 +4,15 @@ module task2_fsm(clk, s, fsm1_done, out_mem, secret_key, done_flag, wren, addres
 input clk;
 input fsm1_done;
 input reg [7:0] s[256];
-input reg [7:0] secret_key[3]; //why is this only third bit?? 
+input reg [7:0] secret_key[3]; 
 input logic [7:0] out_mem; 
 output done_flag;
 output [7:0] address; 
 output [7:0] data; 
+output wren; 
 
-lgoic swap_flag;
+logic swap_flag;
 logic swap_done;
-logic wren; 
 logic [7:0] counter_i = 0;
 logic [7:0] counter_j = 0;
 logic [7:0] array_func[256];
@@ -28,10 +28,10 @@ reg [4:0] state = start;
 
 assign done_flag = state[0];
 assign swap_flag = state[3];
-assign array_func = s;
+//assign array_func = s;
 
 swap_fsm swap_fsm(.clk(clk), .counter_i(counter_i), .counter_j(counter_j), 
-                .s(array_func), .swap_flag(swap_flag), .swap_done(swap_done), 
+                .s(s), .swap_flag(swap_flag), .swap_done(swap_done), 
                 .wren(wren), .s_out(array_func), .address(address), .out_mem(out_mem), .data(data));
 
 /*
@@ -60,7 +60,7 @@ always_ff @(posedge clk) begin
         swap_state: // call some swap fsm
             begin
                 if(!swap_done) state <= swap_state;
-                else if(counter <= 8'd255 && swap_done) state <= counter_inc;
+                else if(counter_i <= 8'd255 && swap_done) state <= counter_inc;
                 else state <= done;
             end
         counter_inc:
