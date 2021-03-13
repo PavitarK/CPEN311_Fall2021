@@ -1,15 +1,16 @@
 `default_nettype none
+`timescale 1 ps / 1 ps
 
 module task2_fsm(clk, s, fsm1_done, out_mem, secret_key, done_flag, wren, address, data);
-input clk;
-input fsm1_done;
+input logic clk;
+input logic fsm1_done;
 input reg [7:0] s[256];
 input reg [7:0] secret_key[3]; 
 input logic [7:0] out_mem; 
-output done_flag;
-output [7:0] address; 
-output [7:0] data; 
-output wren; 
+output logic done_flag;
+output logic [7:0] address; 
+output logic [7:0] data; 
+output logic wren; 
 
 logic swap_flag;
 logic swap_done;
@@ -97,7 +98,7 @@ logic [7:0] address;
 logic [7:0] data; 
 logic wren;
 
-fsm dut(clk, s, fsm1_done, out_mem, secret_key, done_flag, wren, address, data);
+task2_fsm dut(clk, s, fsm1_done, out_mem, secret_key, done_flag, wren, address, data);
 
 initial
 forever #5 clk = ~clk;
@@ -106,7 +107,7 @@ initial
 begin
 clk = 0;
 fsm1_done = 1;
-s = `{8'd0,8'd1,8'd2,8'd3,8'd4,8'd5,8'd6,8'd7,8'd8,8'd9,
+s = '{8'd0,8'd1,8'd2,8'd3,8'd4,8'd5,8'd6,8'd7,8'd8,8'd9,
     8'd10,8'd11,8'd12,8'd13,8'd14,8'd15,8'd16,8'd17,8'd18,8'd019,
     8'd20,8'd21,8'd22,8'd23,8'd24,8'd25,8'd26,8'd27,8'd28,8'd029,
     8'd30,8'd31,8'd32,8'd33,8'd34,8'd35,8'd316,8'd37,8'd38,8'd039,
@@ -126,7 +127,7 @@ s = `{8'd0,8'd1,8'd2,8'd3,8'd4,8'd5,8'd6,8'd7,8'd8,8'd9,
     8'd170,8'd171,8'd172,8'd173,8'd174,8'd175,8'd176,8'd177,8'd178,8'd179,
     8'd180,8'd181,8'd182,8'd183,8'd184,8'd185,8'd186,8'd187,8'd188,8'd189,
     8'd190,8'd191,8'd192,8'd193,8'd194,8'd195,8'd196,8'd197,8'd198,8'd199,
-    8'd200,8'd201,8'202,8'd203,8'd204,8'd205,8'd206,8'd207,8'd208,8'd209,
+    8'd200,8'd201,8'd202,8'd203,8'd204,8'd205,8'd206,8'd207,8'd208,8'd209,
     8'd210,8'd211,8'd212,8'd213,8'd214,8'd215,8'd216,8'd217,8'd218,8'd219,
     8'd220,8'd221,8'd222,8'd223,8'd224,8'd225,8'd226,8'd227,8'd228,8'd229,
     8'd230,8'd231,8'd232,8'd233,8'd234,8'd235,8'd236,8'd237,8'd238,8'd239,

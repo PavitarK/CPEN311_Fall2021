@@ -1,8 +1,8 @@
 `timescale 1 ps / 1 ps
 
 module swap_fsm(clk, counter_i, counter_j, s, swap_flag, swap_done, s_out, wren, address, out_mem, data);
-input clk;
-input swap_flag;
+input logic clk;
+input logic swap_flag;
 input logic [7:0] counter_i;
 input logic [7:0] counter_j;
 input logic [7:0] out_mem; 
@@ -94,7 +94,10 @@ always_ff @(posedge clk) begin
 
         wait4: state <= done; 
 
-        done: state <= start;
+        done: begin 
+            state <= start;
+            address <= counter_i; //????
+            end
         default: begin
             state <= 5'bzzzzz;
             s_out <= s_out; //can remove? 
