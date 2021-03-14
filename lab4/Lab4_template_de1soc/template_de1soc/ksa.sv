@@ -37,34 +37,42 @@ assign CLK_50M =  CLOCK_50;
 assign LEDR[9:0] = LED[9:0];
 
     logic wren, wren1, wren2, fsm1_active, fsm2_active; 
-    logic [7:0] address, counter1, address2, data2, out_mem; 
+    logic [7:0] address;
+    logic [7:0] counter1;
+    logic [7:0] address2;
+    logic [7:0] data2;
+    logic [7:0] out_mem; 
     logic reset_n; 
     reg [7:0] s[256]; 
     logic done_flag_fsm1, fsm2_done; 
     logic [7:0] secret_key [3];
-    logic data; 
+    logic [7:0] data; 
+    logic [1:0] fsm_active;
 
     assign reset_n = KEY[3];
     assign fsm2_active = !fsm2_done && done_flag_fsm1; 
     assign secret_key = '{8'b0 ,8'b0000_0010 ,8'b0100_1001}; 
+    assign fsm_active = {fsm2_active, fsm1_active};
 
     //mux for RAM1 signals 
-    always begin 
-        if(fsm1_active) begin 
-            wren = wren1;
-            address = counter1;  
-            data = counter1; 
-        end 
-        else if(fsm2_active) begin 
-            wren = wren2; 
-            address = address2;
-            data = data2;  
-        end 
-        else begin 
-            wren = wren;
-            address = address; 
-            data = data; 
-        end 
+    always @(*) begin 
+        case(fsm_active) 
+        2'b01: begin 
+                wren <= wren1;
+                address <= counter1;  
+                data <= counter1; 
+             end 
+        2'b10: begin 
+                wren <= wren2; 
+                address <= address2;
+                data <= data2;  
+             end 
+       default: begin 
+                wren <= wren;
+                address <= address; 
+                data <= data; 
+            end 
+        endcase 
     end 
 
    
