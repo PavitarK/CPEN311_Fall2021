@@ -1,11 +1,11 @@
 `default_nettype none
 
 module task1_fsm(clk, s, done_flag, wren, fsm1_active, counter);
-input clk; 
+input logic clk; 
 output reg [7:0] s[256];
-output done_flag;
-output fsm1_active; 
-output wren; 
+output logic done_flag;
+output logic fsm1_active; 
+output logic wren; 
 output counter; 
 
 parameter start = 5'b10000;
@@ -16,7 +16,7 @@ parameter done = 5'b00001;
 reg [4:0] state = start;
 reg [7:0] counter = 8'b0;
 logic [7:0] out_mem; 
-logic wren = 0;
+//logic wren = 0;
 
 assign done_flag = state[0];
 assign wren = state[1];

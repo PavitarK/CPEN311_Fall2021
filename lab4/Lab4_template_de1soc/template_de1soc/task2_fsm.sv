@@ -1,7 +1,7 @@
 `default_nettype none
 `timescale 1 ps / 1 ps
 
-module task2_fsm(clk, s, fsm1_done, out_mem, secret_key, done_flag, wren, address, data);
+module task2_fsm(clk, s, fsm1_done, out_mem, secret_key, done_flag, wren, address, data, fsm2_active);
 input logic clk;
 input logic fsm1_done;
 input reg [7:0] s[256];
@@ -11,29 +11,36 @@ output logic done_flag;
 output logic [7:0] address; 
 output logic [7:0] data; 
 output logic wren; 
+output fsm2_active; 
 
 logic swap_flag;
 logic swap_done;
 logic [7:0] counter_i = 0;
 logic [7:0] counter_j = 0;
 logic [7:0] array_func[256];
+logic [7:0] swap_address, swap_data; 
+logic swap_wren, fsm2_active; 
 
 
 parameter start = 5'b00000;
-parameter j_logic = 5'b00010;
-parameter counter_inc = 5'b00100;
-parameter swap_state = 5'b01000;
+parameter j_logic = 5'b10010;
+parameter counter_inc = 5'b10100;
+parameter swap_state = 5'b11000;
 parameter done = 5'b00001;
 
 reg [4:0] state = start;
 
 assign done_flag = state[0];
 assign swap_flag = state[3];
+assign fsm2_active = state[4];
+assign address = swap_address; 
+assign data = swap_data; 
+assign wren = swap_wren; 
 //assign array_func = s;
 
 swap_fsm swap_fsm(.clk(clk), .counter_i(counter_i), .counter_j(counter_j), 
                 .s(s), .swap_flag(swap_flag), .swap_done(swap_done), 
-                .wren(wren), .s_out(array_func), .address(address), .out_mem(out_mem), .data(data));
+                .wren(swap_wren), .s_out(array_func), .address(swap_address), .out_mem(out_mem), .data(swap_data));
 
 /*
 set j = 0 

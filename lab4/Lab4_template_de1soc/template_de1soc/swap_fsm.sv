@@ -17,13 +17,17 @@ parameter start         = 8'b0000_0000;
 parameter get_i         = 8'b0000_0010;
 parameter get_j         = 8'b0000_0011;
 parameter wait1         = 8'b0000_0100;
-parameter wait2         = 8'b0000_0101; 
+parameter wait11        = 8'b0010_0100;
+parameter wait2         = 8'b0000_0101;
+parameter wait22        = 8'b0010_0101; 
 parameter store_i       = 8'b0000_0111; 
 parameter store_j       = 8'b0000_1111; 
 parameter swap_state_j  = 8'b0001_0100;
 parameter swap_state_i  = 8'b0001_1000;
 parameter wait3         = 8'b0001_1001;
+parameter wait33        = 8'b0011_1001;
 parameter wait4         = 8'b0001_1011;
+parameter wait44        = 8'b0011_1011; 
 parameter done          = 8'b1000_0000;
 
 logic [7:0] temp_i, temp_j; 
@@ -59,7 +63,8 @@ always_ff @(posedge clk) begin
             state <= wait1; 
         end
 
-        wait1: state <= store_i;
+        wait1: state <= wait11;
+        wait11: state <= store_i; 
 
         store_i: begin 
             state <= get_j; 
@@ -71,7 +76,8 @@ always_ff @(posedge clk) begin
             address <= counter_j; 
         end 
         
-        wait2: state <= store_j; 
+        wait2: state <= wait22;
+        wait22: state <= store_j;  
 
         store_j: begin 
             state <= swap_state_i;  
@@ -81,18 +87,20 @@ always_ff @(posedge clk) begin
         swap_state_i: begin
             address <= counter_i;
             state <= wait3;
-            data <= temp_j; 
+            data <= temp_j; //temp_j
         end
 
-        wait3: state <= swap_state_j;
+        wait3: state <= wait33; 
+        wait33: state<= swap_state_j;
 
         swap_state_j: begin
              address <= counter_j;
-             data <= temp_i;
+             data <= temp_i; //temp_i
              state <= wait4; 
         end
 
-        wait4: state <= done; 
+        wait4: state <= wait44;
+        wait44: state<= done;  
 
         done: begin 
             state <= start;
@@ -131,7 +139,7 @@ module tb_swap_fsm();
 
     initial begin 
         //address should be i=0 and should stay in start state 
-        #5;
+        #6;
 
         //state machine starts
         //address is i=0 
