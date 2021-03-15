@@ -55,7 +55,7 @@ always_ff @(posedge clk) begin
         end
 
         get_i: begin
-            address <= counter_i;
+            address <= counter_i; //?
             state <= wait1; 
         end
 
@@ -68,7 +68,7 @@ always_ff @(posedge clk) begin
 
         get_j: begin 
             state <= wait2; 
-            address <=counter_j; 
+            address <= counter_j; 
         end 
         
         wait2: state <= store_j; 
@@ -81,7 +81,7 @@ always_ff @(posedge clk) begin
         swap_state_i: begin
             address <= counter_i;
             state <= wait3;
-            data = temp_j; 
+            data <= temp_j; 
         end
 
         wait3: state <= swap_state_j;
