@@ -42,7 +42,7 @@ assign LEDR[9:0] = LED[9:0];
     logic [7:0] address2;
     logic [7:0] data2;
     logic [7:0] out_mem; 
-    reg [7:0] s[256]; 
+    //reg [7:0] s[256]; 
     logic done_flag_fsm1, fsm2_done; 
     logic [7:0] secret_key [3];
     logic [7:0] data; 
@@ -52,7 +52,7 @@ assign LEDR[9:0] = LED[9:0];
     assign fsm_active = {fsm2_active, fsm1_active};
 
     //mux for RAM1 signals 
-    always @(*) begin 
+    always @(posedge CLOCK_50) begin 
         case(fsm_active) 
         2'b01: begin 
                 wren <= wren1;
@@ -73,9 +73,9 @@ assign LEDR[9:0] = LED[9:0];
     end 
 
    
-    task1_fsm fillArray(.clk(CLOCK_50),.s(s), .done_flag(done_flag_fsm1), .wren(wren1), .counter(counter1), .fsm1_active(fsm1_active));
+    task1_fsm fillArray(.clk(CLOCK_50), .done_flag(done_flag_fsm1), .wren(wren1), .counter(counter1), .fsm1_active(fsm1_active));
     
-    task2_fsm task2(.clk(CLOCK_50), .s(s), .fsm1_done(done_flag_fsm1), .out_mem(out_mem), 
+    task2_fsm task2(.clk(CLOCK_50), .fsm1_done(done_flag_fsm1), .out_mem(out_mem), 
                     .secret_key(secret_key), .done_flag(fsm2_done), .wren(wren2), 
                     .address(address2), .data(data2), .fsm2_active(fsm2_active));
     

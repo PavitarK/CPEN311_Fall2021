@@ -1,10 +1,9 @@
 `default_nettype none
 `timescale 1 ps / 1 ps
 
-module task2_fsm(clk, s, fsm1_done, out_mem, secret_key, done_flag, wren, address, data, fsm2_active);
+module task2_fsm(clk, fsm1_done, out_mem, secret_key, done_flag, wren, address, data, fsm2_active);
 input logic clk;
 input logic fsm1_done;
-input reg [7:0] s[256];
 input reg [7:0] secret_key[3]; 
 input logic [7:0] out_mem; 
 output logic done_flag;
@@ -15,32 +14,29 @@ output fsm2_active;
 
 logic swap_flag;
 logic swap_done;
-logic [7:0] counter_i = 0;
-logic [7:0] counter_j = 0;
-logic [7:0] array_func[256];
-logic [7:0] swap_address, swap_data; 
-logic swap_wren, fsm2_active; 
+logic [7:0] counter_i;
+logic [7:0] counter_j;
+logic fsm2_active, j_enable, i_enable, reset_flag; 
 
 
-parameter start = 5'b00000;
-parameter j_logic = 5'b10010;
-parameter counter_inc = 5'b10100;
-parameter swap_state = 5'b11000;
-parameter done = 5'b00001;
+parameter start         = 10'b00_0010_0000; //32
+parameter j_logic       = 10'b00_0101_0010; //82
+parameter counter_inc   = 10'b00_1001_0100; //148
+parameter swap_state    = 10'b01_0001_1000; //280
+parameter done          = 10'b10_0000_0001; //513
 
-reg [4:0] state = start;
+reg [9:0] state = start;
 
 assign done_flag = state[0];
 assign swap_flag = state[3];
+assign reset_flag = state[5];
 assign fsm2_active = state[4];
-assign address = swap_address; 
-assign data = swap_data; 
-assign wren = swap_wren; 
-//assign array_func = s;
+assign j_enable = state[6]; //update counter j signal
+assign i_enable = state[7]; //update counter i signal 
 
 swap_fsm swap_fsm(.clk(clk), .counter_i(counter_i), .counter_j(counter_j), 
-                .s(s), .swap_flag(swap_flag), .swap_done(swap_done), 
-                .wren(swap_wren), .s_out(array_func), .address(swap_address), .out_mem(out_mem), .data(swap_data));
+                 .swap_flag(swap_flag), .swap_done(swap_done), 
+                .wren(wren), .address(address), .out_mem(out_mem), .data(data));
 
 /*
 set j = 0 
@@ -62,18 +58,18 @@ always_ff @(posedge clk) begin
             end
         j_logic: 
             begin 
-                counter_j <= counter_j + out_mem + secret_key[counter_i % 3];
+                // counter_j <= counter_j + out_mem + secret_key[counter_i % 3];
                 state <= swap_state; 
             end
         swap_state: // call some swap fsm
             begin
                 if(!swap_done) state <= swap_state;
-                else if(counter_i <= 8'd255 && swap_done) state <= counter_inc;
+                else if(counter_i < 8'd255 && swap_done) state <= counter_inc;
                 else state <= done;
             end
         counter_inc:
             begin
-                counter_i <= counter_i + 1;
+                // counter_i <= counter_i + 1;
                 state <= j_logic;
             end
 
@@ -81,18 +77,35 @@ always_ff @(posedge clk) begin
         default: 
             begin
                 state <= 5'bzzzzz;
-                counter_i <= counter_i;
-                counter_j <= counter_j;
             end 
     endcase
 end
+
+always_ff @(posedge clk) begin 
+    if(reset_flag)
+        counter_j = 0; 
+    else if(j_enable)
+        counter_j = counter_j + out_mem + secret_key[counter_i % 3];
+    else 
+        counter_j = counter_j; 
+end 
+
+always_ff @(posedge clk) begin 
+    if(reset_flag)
+        counter_i = 0; 
+    else if(i_enable)
+        counter_i = counter_i + 1; 
+    else 
+        counter_i = counter_i; 
+end 
+
 endmodule
 
 module tb_task2_fsm();
 
 //Inputs
 
-logic clk;
+logic clk, fsm2_active;
 logic fsm1_done;
 logic [7:0] s[256];
 logic [7:0] secret_key[3]; 
@@ -105,10 +118,10 @@ logic [7:0] address;
 logic [7:0] data; 
 logic wren;
 
-task2_fsm dut(clk, s, fsm1_done, out_mem, secret_key, done_flag, wren, address, data);
+task2_fsm dut(clk, fsm1_done, out_mem, secret_key, done_flag, wren, address, data, fsm2_active);
 
 initial
-forever #5 clk = ~clk;
+forever #1 clk = ~clk;
 
 initial
 begin

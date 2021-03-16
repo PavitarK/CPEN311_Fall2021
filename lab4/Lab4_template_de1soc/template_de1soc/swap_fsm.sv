@@ -1,41 +1,42 @@
 `timescale 1 ps / 1 ps
 
-module swap_fsm(clk, counter_i, counter_j, s, swap_flag, swap_done, s_out, wren, address, out_mem, data);
+module swap_fsm(clk, counter_i, counter_j, swap_flag, swap_done, wren, address, out_mem, data);
 input logic clk;
 input logic swap_flag;
 input logic [7:0] counter_i;
 input logic [7:0] counter_j;
 input logic [7:0] out_mem; 
-input logic [7:0] s[256];
 output logic [7:0] address; 
 output logic swap_done;
-output logic [7:0] s_out[256]; //can remove? 
 output logic wren; 
 output logic [7:0] data; 
 
-parameter start         = 8'b0000_0000;
-parameter get_i         = 8'b0000_0010;
-parameter get_j         = 8'b0000_0011;
-parameter wait1         = 8'b0000_0100;
-parameter wait11        = 8'b0010_0100;
-parameter wait2         = 8'b0000_0101;
-parameter wait22        = 8'b0010_0101; 
-parameter store_i       = 8'b0000_0111; 
-parameter store_j       = 8'b0000_1111; 
-parameter swap_state_j  = 8'b0001_0100;
-parameter swap_state_i  = 8'b0001_1000;
-parameter wait3         = 8'b0001_1001;
-parameter wait33        = 8'b0011_1001;
-parameter wait4         = 8'b0001_1011;
-parameter wait44        = 8'b0011_1011; 
-parameter done          = 8'b1000_0000;
+parameter start         = 12'b0000_0001_0000; //update address to counter i
+parameter get_i         = 12'b0000_0001_0010; //update address to counter i? 
+parameter get_j         = 12'b0000_0010_0011; //update address to counter j
+parameter wait1         = 12'b0000_0000_0100; //do nothing 
+parameter wait2         = 12'b0000_0000_0101; //do nothing 
+parameter store_i       = 12'b0000_0100_0111; //update temp_i
+parameter store_j       = 12'b0000_1000_1111; //update temp_j
+parameter swap_state_j  = 12'b0110_0010_0100; //update address to counter j AND update data to temp_i AND wren
+parameter swap_state_i  = 12'b0101_0001_1000; //update address to counter i AND update data to temp_j AND wren
+parameter wait3         = 12'b0100_0000_1001; //do nothing AND wren 
+parameter wait4         = 12'b0100_0000_1011; //do nothing AND wren
+parameter done          = 12'b1000_0000_0000; //raise done flag 
 
 logic [7:0] temp_i, temp_j; 
-reg [7:0] state = start;
+reg [11:0] state = start;
+logic address_i, address_j, tempi_enable, tempj_enable, update_data_i, update_data_j; 
 
-assign swap_done = state[7];
-assign wren = state[4];
+assign address_i     = state[4]; //set address to i 
+assign address_j     = state[5]; //set address to j
+assign tempi_enable  = state[6]; //update temp_i
+assign tempj_enable  = state[7]; //update temp_j
 
+assign update_data_i = state[8]; //update data to i
+assign update_data_j = state[9]; //update data to j
+assign wren          = state[10]; 
+assign swap_done     = state[11];
 /*
 wait
 get s[i]
@@ -49,68 +50,96 @@ put s[i] in s]j
 finish
 */
 
+always_ff @(posedge clk) begin 
+    if(address_i) 
+        address <= counter_i; 
+    else if(address_j)
+        address <= counter_j; 
+    else 
+        address <= address; 
+end
+
+always_ff @(posedge clk) begin 
+    if(tempi_enable)
+        temp_i <= out_mem; 
+    else 
+        temp_i <= temp_i; 
+end 
+
+always_ff @(posedge clk) begin 
+    if(tempj_enable)
+        temp_j <= out_mem; 
+    else 
+        temp_j <= temp_j; 
+end 
+
+always_ff @(posedge clk) begin 
+    if(update_data_i)
+        data <= temp_i; 
+    else if(update_data_j)
+        data <= temp_j;
+    else 
+        data <= data; 
+end 
+
+//state controller
 always_ff @(posedge clk) begin
     case (state)
         start: 
         begin
             if(swap_flag) state <= get_i;
             else state <= start;
-            address <= counter_i; //keep this as whatever the counter in task2fsm is until we need to read alternate values
+            //address <= counter_i; //keep this as whatever the counter in task2fsm is until we need to read alternate values
         end
 
         get_i: begin
-            address <= counter_i; //?
+            // address <= counter_i; //?
             state <= wait1; 
         end
 
-        wait1: state <= wait11;
-        wait11: state <= store_i; 
+        wait1: state <= store_i;
 
         store_i: begin 
             state <= get_j; 
-            temp_i <= out_mem; //temp <= s[i]
+            //temp_i <= out_mem; //temp <= s[i]
         end 
 
         get_j: begin 
             state <= wait2; 
-            address <= counter_j; 
+            //address <= counter_j; 
         end 
         
-        wait2: state <= wait22;
-        wait22: state <= store_j;  
+        wait2: state <= store_j; 
 
         store_j: begin 
             state <= swap_state_i;  
-            temp_j <= out_mem; 
+            //temp_j <= out_mem; 
         end 
     
         swap_state_i: begin
-            address <= counter_i;
+            //address <= counter_i;
             state <= wait3;
-            data <= temp_j; //temp_j
+            //data <= temp_j; //temp_j
         end
 
-        wait3: state <= wait33; 
-        wait33: state<= swap_state_j;
+        wait3: state <= swap_state_j; 
 
         swap_state_j: begin
-             address <= counter_j;
-             data <= temp_i; //temp_i
+             //address <= counter_j;
+             //data <= temp_i; //temp_i
              state <= wait4; 
         end
 
-        wait4: state <= wait44;
-        wait44: state<= done;  
+        wait4: state <= done;
 
         done: begin 
             state <= start;
-            address <= counter_i; //????
+            // address <= counter_i; //????
             end
         default: begin
-            state <= 5'bzzzzz;
-            s_out <= s_out; //can remove? 
-            address = address; 
-            data = data; 
+            state <= 5'bzzzzz; 
+            // address = address; 
+            // data = data; 
         end
     endcase
 end
