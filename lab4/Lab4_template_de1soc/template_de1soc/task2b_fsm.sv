@@ -22,13 +22,16 @@ logic wren_d;
 parameter start         = 10'b00_0010_0000; //32
 parameter j_logic       = 10'b00_0101_0010; //82
 parameter f_logic_i     = 10'b00_0101_0110; //86
-parameter f_logic_j     = 10'b00_0111_0110; //86
-parameter f_logic_sum   = 10'b00_1111_0110; //86
-parameter decrypt_state = 10'b00_1111_0100; //86
+parameter f_logic_j     = 10'b00_0111_0110; //118
+parameter f_logic_sum   = 10'b00_1111_0110; //246
+parameter decrypt_state = 10'b00_1111_0100; //244
 parameter counter_inc   = 10'b00_1001_0100; //148
 parameter swap_state    = 10'b01_0001_1000; //280
-parameter k_inc         = 10'b00_0011_0100; //148
+parameter k_inc         = 10'b00_0011_0100; //52
 parameter done          = 10'b10_0000_0001; //513
+parameter wait_1        = 10'b00_0001_0000; //16
+parameter wait_2        = 10'b00_0011_0000; //48
+parameter wait_3        = 10'b00_0111_0000; //112
 
 reg [9:0] state = start;
 
@@ -78,20 +81,25 @@ always_ff @(posedge clk) begin
         f_logic_i:
             begin
                 // s_f = out_mem; temp_i = counter_i;
-                state <= f_logic_j;
+                state <= wait_1;
             end
+
+        wait_1: state <= f_logic_j;
 
         f_logic_j:
             begin
                 //counter_i = counter_j; s_f += out_mem
-                state <= f_logic_sum;
+                state <= wait_2;
             end
 
+        wait_2: state <= f_logic_sum;
         f_logic_sum:
             begin
                 //counter_i = s_f; f = out_mem;
-                state <= decrypt_state;
+                state <= wait_3;
             end
+
+        wait_3: state <= decrypt_state;
 
         decrypt_state:
             begin
@@ -100,7 +108,7 @@ always_ff @(posedge clk) begin
 
         k_inc:
             begin
-                if (k <= 32) state <= start; 
+                if (k <= 31) state <= start; // k is between 0 and 31
                 else state <= doone
             end
 
@@ -123,12 +131,12 @@ always_ff @(posedge clk) begin
 
         counter_inc: 
             begin 
-                counter_i <= counter_i + 1
+                counter_i <= counter_i + 1;
             end
 
         j_logic:
             begin
-                j <= j + s[i]
+                j <= j + out_mem;
             end
 
         f_logic_i:
@@ -136,7 +144,6 @@ always_ff @(posedge clk) begin
                 s_f <= out_mem; 
                 temp_i <= counter_i;
             end
-
         f_logic_j:
             begin
                 counter_i <= counter_j; 
