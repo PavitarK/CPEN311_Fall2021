@@ -11,18 +11,31 @@ output logic swap_done;
 output logic wren; 
 output logic [7:0] data; 
 
-parameter start         = 12'b0000_0001_0000; //update address to counter i
-parameter get_i         = 12'b0000_0001_0010; //update address to counter i? 
-parameter get_j         = 12'b0000_0010_0011; //update address to counter j
-parameter wait1         = 12'b0000_0000_0100; //do nothing 
-parameter wait2         = 12'b0000_0000_0101; //do nothing 
-parameter store_i       = 12'b0000_0100_0111; //update temp_i
-parameter store_j       = 12'b0000_1000_1111; //update temp_j
-parameter swap_state_j  = 12'b0110_0010_0100; //update address to counter j AND update data to temp_i AND wren
-parameter swap_state_i  = 12'b0101_0001_1000; //update address to counter i AND update data to temp_j AND wren
-parameter wait3         = 12'b0100_0000_1001; //do nothing AND wren 
-parameter wait4         = 12'b0100_0000_1011; //do nothing AND wren
-parameter done          = 12'b1000_0000_0000; //raise done flag 
+parameter start         = 12'b0000_0001_0000; //16: update address to counter i
+parameter get_i         = 12'b0000_0001_0010; //18: update address to counter i? 
+parameter get_j         = 12'b0000_0010_0011; //35: update address to counter j
+parameter wait1         = 12'b0000_0100_0100; //4: do nothing 
+parameter wait2         = 12'b0000_1000_0101; //5: do nothing 
+parameter store_i       = 12'b0000_0010_0111; //71: update temp_i
+parameter store_j       = 12'b0001_0001_1111; //143: update temp_j
+parameter swap_state_j  = 12'b0110_0010_0100; //1572: update address to counter j AND update data to temp_i AND wren
+parameter swap_state_i  = 12'b0101_0001_1000; //1304: update address to counter i AND update data to temp_j AND wren
+parameter wait3         = 12'b0110_0010_1001; //1033: do nothing AND wren 
+parameter wait4         = 12'b0100_0000_1011; //1035: do nothing AND wren
+parameter done          = 12'b1000_0000_0000; //2048: raise done flag
+
+// parameter start         = 12'b0000_0001_0000; //16: update address to counter i
+// parameter get_i         = 12'b0000_0001_0010; //18: update address to counter i? 
+// parameter get_j         = 12'b0000_0010_0011; //35: update address to counter j
+// parameter wait1         = 12'b0000_0000_0100; //4: do nothing 
+// parameter wait2         = 12'b0000_0000_0101; //5: do nothing 
+// parameter store_i       = 12'b0000_0100_0111; //71: update temp_i
+// parameter store_j       = 12'b0000_1000_1111; //143: update temp_j
+// parameter swap_state_j  = 12'b0110_0010_0100; //1572: update address to counter j AND update data to temp_i AND wren
+// parameter swap_state_i  = 12'b0101_0001_1000; //1304: update address to counter i AND update data to temp_j AND wren
+// parameter wait3         = 12'b0100_0000_1001; //1033: do nothing AND wren 
+// parameter wait4         = 12'b0100_0000_1011; //1035: do nothing AND wren
+// parameter done          = 12'b1000_0000_0000; //2048: raise done flag 
 
 logic [7:0] temp_i, temp_j; 
 reg [11:0] state = start;
@@ -152,7 +165,7 @@ module tb_swap_fsm();
    logic [7:0] s[256];
    logic [7:0] s_out[256];
 
-    swap_fsm dut(clk, counter_i, counter_j, s, swap_flag, swap_done, s_out, wren, address, out_mem, data);
+    swap_fsm dut(clk, counter_i, counter_j, swap_flag, swap_done, wren, address, out_mem, data);
 
     initial begin 
             clk = 0; 

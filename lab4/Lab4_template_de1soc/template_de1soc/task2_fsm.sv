@@ -20,17 +20,26 @@ logic fsm2_active, j_enable, i_enable, reset_flag;
 
 
 parameter start         = 10'b00_0010_0000; //32
-parameter j_logic       = 10'b00_0101_0010; //82
-parameter counter_inc   = 10'b00_1001_0100; //148
+parameter wait_1        = 10'b00_0101_0000;
+parameter j_logic       = 10'b00_0001_0010; //82
 parameter swap_state    = 10'b01_0001_1000; //280
+parameter wait_2        = 10'b00_1001_0000; 
+parameter counter_inc   = 10'b00_0001_0100; //148
 parameter done          = 10'b10_0000_0001; //513
+
+
+// parameter start         = 10'b00_0010_0000; //32
+// parameter j_logic       = 10'b00_0101_0010; //82
+// parameter counter_inc   = 10'b00_1001_0100; //148
+// parameter swap_state    = 10'b01_0001_1000; //280
+// parameter done         = 10'b10_0000_0001; //513
 
 reg [9:0] state = start;
 
 assign done_flag = state[0];
 assign swap_flag = state[3];
-assign reset_flag = state[5];
 assign fsm2_active = state[4];
+assign reset_flag = state[5];
 assign j_enable = state[6]; //update counter j signal
 assign i_enable = state[7]; //update counter i signal 
 
@@ -53,9 +62,10 @@ always_ff @(posedge clk) begin
     case(state)
         start:
             begin 
-                if(fsm1_done) state <= j_logic;
+                if(fsm1_done) state <= wait_1;
                 else state <= start;
             end
+        wait_1: state <= j_logic; 
         j_logic: 
             begin 
                 // counter_j <= counter_j + out_mem + secret_key[counter_i % 3];
@@ -64,9 +74,10 @@ always_ff @(posedge clk) begin
         swap_state: // call some swap fsm
             begin
                 if(!swap_done) state <= swap_state;
-                else if(counter_i < 8'd255 && swap_done) state <= counter_inc;
+                else if(counter_i < 8'd255 && swap_done) state <= wait_2;
                 else state <= done;
             end
+        wait_2: state <= counter_inc; 
         counter_inc:
             begin
                 // counter_i <= counter_i + 1;
