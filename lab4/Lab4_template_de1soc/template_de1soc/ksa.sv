@@ -52,34 +52,32 @@ assign LEDR[9:0] = LED[9:0];
     assign fsm_active = {fsm2_active, fsm1_active};
 
     //mux for RAM1 signals 
-    always @(posedge CLOCK_50) begin 
-        case(fsm_active) 
-        2'b01: begin 
-                wren <= wren1;
-                address <= counter1;  
-                data <= counter1; 
-             end 
-        2'b10: begin 
-                wren <= wren2; 
-                address <= address2;
-                data <= data2;  
-             end 
-       default: begin 
-                wren <= wren;
-                address <= address; 
-                data <= data; 
-            end 
-        endcase 
-    end 
+    // always @(posedge CLOCK_50) begin 
+    //     case(fsm_active) 
+    //     2'b01: begin 
+    //             wren <= wren1;
+    //             address <= counter1;  
+    //             data <= counter1; 
+    //          end 
+    //     2'b10: begin 
+    //             wren <= wren2; 
+    //             address <= address2;
+    //             data <= data2;  
+    //          end 
+    //    default: begin 
+    //             wren <= wren;
+    //             address <= address; 
+    //             data <= data; 
+    //         end 
+    //     endcase 
+    // end 
 
    
-    task1_fsm fillArray(.clk(CLOCK_50), .done_flag(done_flag_fsm1), .wren(wren1), .counter(counter1), .fsm1_active(fsm1_active));
+    //task1_fsm fillArray(.clk(CLOCK_50), .done_flag(done_flag_fsm1), .wren(wren1), .counter(counter1), .fsm1_active(fsm1_active));
     
-    task2_fsm task2(.clk(CLOCK_50), .fsm1_done(done_flag_fsm1), .out_mem(out_mem), 
+    task2_fsm task2(.clk(CLOCK_50), 
                     .secret_key(secret_key), .done_flag(fsm2_done), .wren(wren2), 
                     .address(address2), .data(data2), .fsm2_active(fsm2_active));
-    
-    s_memory RAM1(.address(address), .clock(CLOCK_50), .data(data), .wren(wren), .q(out_mem));
 
 
 endmodule 

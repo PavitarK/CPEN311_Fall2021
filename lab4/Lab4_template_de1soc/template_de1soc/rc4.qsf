@@ -912,6 +912,7 @@ set_global_assignment -name VERILOG_INPUT_VERSION SYSTEMVERILOG_2005
 set_global_assignment -name VERILOG_SHOW_LMF_MAPPING_MESSAGES OFF
 set_global_assignment -name SYNCHRONIZER_IDENTIFICATION AUTO
 set_global_assignment -name TIMEQUEST_DO_CCPP_REMOVAL ON
+set_global_assignment -name SYSTEMVERILOG_FILE task2_fsm2.sv
 set_global_assignment -name SYSTEMVERILOG_FILE swap_fsm.sv
 set_global_assignment -name SYSTEMVERILOG_FILE task2_fsm.sv
 set_global_assignment -name SYSTEMVERILOG_FILE task1_fsm.sv

@@ -25,18 +25,20 @@ parameter waitforfsm1   = 17'b00000_0000_0000_0000; // nothing
 parameter start         = 17'b00000_0000_0110_0001; // raise reset flag AND fsm active flag
 parameter wait_0        = 17'b00000_0000_0010_0010;
 parameter store_i       = 17'b00000_1000_0010_0011; // tempi_enable
-parameter j_logic       = 17'b00000_0100_1010_0100; // j_enable and address_j
-parameter wait_1        = 17'b00000_0000_0010_0101; //
+parameter j_logic       = 17'b00000_0000_1010_0100; // j_enable and address_j
+parameter wait_1        = 17'b00000_0100_0010_0101; //
 parameter store_j       = 17'b00001_0000_0010_0111; // tempj_enable
-parameter swap_1        = 17'b01010_0000_0010_1000; // data_i, wren 
+parameter swap_1        = 17'b01000_0000_0010_1000; // data_i, wren 
 parameter wait_2        = 17'b00000_0000_0010_1001; // lower wren
-parameter swap_2        = 17'b01100_0010_0010_1010; // update adress i, data_j, wren 
+parameter swap_2        = 17'b01000_0000_0010_1010; // update adress i, data_j, wren 
 parameter wait_3        = 17'b00000_0000_0010_1100; //
 parameter check_inc     = 17'b00000_0000_0011_1101;
 parameter counter_inc   = 17'b00000_0001_0010_1110; // i_enable
 parameter reset_address = 17'b00000_0010_0010_1111; // address_i
 parameter done          = 17'b10000_0000_0001_1111; //
-
+parameter wait_4        = 17'b00010_0000_0010_0111;
+parameter wait_5        = 17'b00100_0010_0010_1010;
+parameter state1        = 17'b00000_0000_0010_0101;
 
 reg [16:0] state = waitforfsm1;
 
@@ -60,15 +62,7 @@ assign address = address_reg;
 assign data = data_reg; 
 
 /*
-set j = 0 
-set i = 0 
-wait 
-get s[i]
-set j
-swap i and j its own fsm 
-check i <255
-increment
-done 
+init loop -> swap -> wait 1 -> store i -> calc j -> wait 2 -> read j -> write at j -> wait 3 -> write at i -> wait 4 -> inc -> done
 */
 always_ff @(posedge clk) begin
     case(state)
@@ -91,32 +85,42 @@ always_ff @(posedge clk) begin
 
         j_logic: begin 
            // counter_j <= counter_j + out_mem + secret_key[counter_i % 3];
-            //address <= counter_j + out_mem + secret_key[counter_i % 3];
             state <= wait_1;
         end 
 
-        wait_1: state <= store_j;
+        wait_1: state <= state1;            //address <= counter_j;
+
+        state1: state <= store_j;
 
         store_j: begin
-            state <= swap_1;
+            state <= wait_4;
             //temp_j <= out_mem; 
+        end
+
+        wait_4: begin
+            state <= swap_1;
+            //data <= temp_i; 
         end
 
         swap_1: begin 
             state <= wait_2; 
-            //data <= temp_i; 
             //wren <=1; 
         end 
         
         wait_2: begin 
-            state <= swap_2; 
+            state <= wait_5; 
             //wren <= 0; 
         end 
 
+        wait_5: begin
+            state <= swap_2;
+            //address <= counter_i; 
+             //data <= temp_j; 
+        end
+
         swap_2:begin 
              state <= wait_3;
-             //address <= counter_i; 
-             //data <= temp_j; 
+            
              //wren <= 1; 
         end 
 
@@ -145,7 +149,7 @@ always_ff @(posedge clk) begin
         done: state <= done; 
         default: 
             begin
-                state <= 17'bzzzzzzzzzzzzzzzzz;
+                state <= 17'bz;
             end 
     endcase
 end
