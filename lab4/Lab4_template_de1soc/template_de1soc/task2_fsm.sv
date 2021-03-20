@@ -17,217 +17,156 @@ logic [7:0] out_mem;
 logic [7:0] counter_i;
 logic [7:0] counter_j;
 logic [7:0] temp_i, temp_j;
-logic fsm2_active, j_enable, i_enable, reset_flag; 
+logic fsm2_active; 
+
+                            //   98_7654_3210  
+parameter write_mem        = 10'b01_0000_0001; // start, set address,data, wren 
+parameter check_done       = 10'b01_0000_0011; //
+parameter done_fill        = 10'b00_0000_0111; //
+
+parameter start_swap       = 10'b00_0000_0000; //reset all counters and address
+parameter swap_1           = 10'b00_0001_0000; // set address
+parameter wait_1           = 10'b00_0001_0001; // wait for outmem to update
+parameter store_i          = 10'b00_0011_0001; // store value s[i] in temp
+parameter calc_j           = 10'b00_0111_0001; // update j and address
+parameter wait_2           = 10'b00_1111_0001; // wait for out mem to update
+parameter store_j          = 10'b00_1011_0001; // store s[j] in temp 
+parameter write_at_j       = 10'b01_1001_0001; // swap s[j] value 
+parameter wait_3           = 10'b00_1001_1001; // wait lower wren 
+parameter write_at_i       = 10'b01_1001_1101; // swap s[i] value 
+parameter wait_4           = 10'b00_1001_1111; // wait lower wren 
+parameter counter_inc      = 10'b00_0001_1111; // increment i
+parameter done_swap        = 10'b10_0000_1011;
 
 
-// parameter start         = 10'b00_0010_0000; //32
-// parameter wait_1        = 10'b00_1001_0000;
-// parameter j_logic       = 10'b00_0001_0010; //82
-// parameter swap_state    = 10'b01_0001_1000; //280
-// parameter wait_2        = 10'b00_0101_0000; 
-// parameter counter_inc   = 10'b00_0001_0100; //148
-// parameter done          = 10'b10_0000_0001; //513
-
-parameter start            = 10'b00_0000_0000;
-parameter swap_1           = 10'b00_0001_0000;
-parameter wait_1           = 10'b00_0001_0001;
-parameter store_i          = 10'b00_0011_0001;
-parameter calc_j           = 10'b00_0111_0001;
-parameter wait_2           = 10'b00_1111_0001;
-parameter read_j           = 10'b00_1011_0001;
-parameter write_at_j       = 10'b00_1001_0001;
-parameter wait_3           = 10'b00_1001_1001;
-parameter write_at_i       = 10'b00_1001_1101;
-parameter wait_4           = 10'b00_1001_1111;
-parameter inc              = 10'b00_0001_1111;
-parameter wait_5           = 10'b10_0000_1011;
-
-parameter fillstart        = 10'b00_0000_0001;
-parameter writearr         = 10'b00_0000_0011;
-parameter done1            = 10'b00_0000_0111;
-
-// parameter start         = 10'b00_0010_0000; //32
-// parameter j_logic       = 10'b00_0101_0010; //82
-// parameter counter_inc   = 10'b00_1001_0100; //148
-// parameter swap_state    = 10'b01_0001_1000; //280
-// parameter done         = 10'b10_0000_0001; //513
-
-reg [9:0] state = fillstart;
+reg [9:0] state = write_mem;
 
 assign done_flag = state[9];
-//assign swap_flag = state[3];
 assign fsm2_active = state[4];
-assign reset_flag = state[5];
-assign j_enable = state[6]; //update counter j signal
-assign i_enable = state[7]; //update counter i signal 
 
-// swap_fsm swap_fsm(.clk(clk), .counter_i(counter_i), .counter_j(counter_j), 
-//                  .swap_flag(swap_flag), .swap_done(swap_done), 
-//                 .wren(wren), .address(address), .out_mem(out_mem), .data(data));
-
-/*
-set j = 0 
-set i = 0 
-wait 
-get s[i]
-set j
-swap i and j its own fsm 
-check i <255
-increment
-done 
-*/
 s_memory RAM1(.address(address), .clock(clk), .data(data), .wren(wren), .q(out_mem));
+
+//state controller
 always_ff @(posedge clk) begin
     case(state)
-        // start:
-        //     begin 
-        //         if(fsm1_done) state <= wait_1;
-        //         else state <= start;
-        //     end
-        // wait_1: state <= j_logic; 
-        // j_logic: 
-        //     begin 
-        //         // counter_j <= counter_j + out_mem + secret_key[counter_i % 3];
-        //         state <= swap_state; 
-        //     end
-        // swap_state: // call some swap fsm
-        //     begin
-        //         if(!swap_done) state <= swap_state;
-        //         else state <= wait_2;
-        //     end
-        // wait_2: state <= counter_inc; 
-        // counter_inc:
-        //     begin
-        //         // counter_i <= counter_i + 1;
-        //         if (counter_i == 8'd255) state <= done;
-        //         else state <= wait_1;
-        //     end
+    //immediately start and fill the memory 
+        write_mem: state <= check_done;
 
-        // done: state <= done;
-        fillstart: begin
-            address <= counter_i;
-            data <= counter_i;
-            wren = 1'b1;
-            state <= writearr;
+        check_done: begin
+            if (counter_i == 8'd255) 
+                state <= done_fill; 
+            else 
+                state <= write_mem; 
         end
-        writearr: begin
-            if (counter_i == 8'd255) begin fsm1_done = 1'b1; state <= done1; end
-            else begin counter_i <= counter_i + 1; state <= fillstart; end
-        end
-        done1: begin wren <= 1'b0; state <= start; end
-        start: 
-        begin
-            counter_i <= 8'b0;
-            counter_j <= 8'b0;
-            temp_i <= 8'b0;
-            wren <= 0;
-            temp_j <= 8'b0;
+
+        done_fill: state <= start_swap; 
+        
+
+    //Begin swapping 
+        start_swap: begin
             if(fsm1_done) state <= swap_1; 
-            else state <= start;
+            else state <= start_swap;
         end
-        swap_1: 
-        begin
-            address <= counter_i;
-            state <= wait_1;
-				end
+
+        swap_1:  state <= wait_1;
                 
-                wait_1: begin
-                    state <= store_i;
-                end
-				
-				// GET s[i]
-				store_i: begin
-					temp_i <= out_mem;
-					
-					state <= calc_j;
-				end
-				
-				// GET j
-				calc_j: begin
-					address <= counter_j + out_mem + secret_key[counter_i % 3]; //don't change
-					counter_j <= counter_j + out_mem + secret_key[counter_i % 3];
-				
-					state <= wait_2;
-				end
-				
-				// DELAY
-				wait_2: begin
-					state <= read_j;
-				end
-				
-				// GET s[j]
-				read_j: begin
-					temp_j <= out_mem;
-					
-					state <= write_at_j;
-				end
-				
-				// WRITE s[i] at j
-				write_at_j: begin
-					data <= temp_i;
-					wren <= 1'b1;
-					
-					state <= wait_3;
-				end
-				
-				// DELAY
-				wait_3: begin
-					wren <= 1'b0;
-					state <= write_at_i;
-				end
-				
-				// WRITE s[j] at i
-				write_at_i: begin
-					address <= counter_i;
-					data <= temp_j;
-					
-					wren <= 1'b1;
-					state <= wait_4;
-				end
-				
-				// DELAY
-				wait_4: begin
-					wren <= 1'b0;
-					state <= inc;
-				end
-				
-				// INCREMENT i 
-				inc: begin
-					if(counter_i <= 8'b11111110) begin
-						counter_i <= counter_i + 1'b1;
-						state <= swap_1;
-					end
-					else begin
-						swap_flag <= 1'b1;
-						state <= wait_5;
-					end
-				end
-				
-				// DONE SWAP LOOP 1 AND WAIT
-				wait_5: begin
-					state <= wait_5;
-				end
+        wait_1: state <= store_i;
+        
+        store_i:  state <= calc_j;
+    
+        calc_j: state <= wait_2;
+        
+        wait_2: state <= store_j;
+        
+        store_j: state <= write_at_j;
+        
+        write_at_j: state <= wait_3;
+        
+        wait_3: state <= write_at_i;
+        
+        write_at_i: state <= wait_4;
+        
+        wait_4: state <= counter_inc;
+        
+        counter_inc: begin
+            if(counter_i <= 8'b11111110) 
+                state <= swap_1;
+            else 
+                state <= done_swap;
+        end
+        
+        done_swap: state <= done_swap;
+
         default: 
             begin
-                state <= 10'bzzzzz;
+                state <= 10'bz;
             end 
     endcase
 end
 
-// always_ff @(posedge clk) begin 
-//     // case(state)
-//     //     start:  begin counter_i <= 0; counter_j <= 0; end
-//     //     wait_1: counter_j <= counter_j + out_mem + secret_key[counter_i % 3];
-//     //     wait_2: counter_i <= counter_i + 1;
-//     // endcase
-//     if (reset_flag) begin counter_i <= 0; counter_j <= 0; end
-//     else if (j_enable) counter_j <= counter_j + out_mem + secret_key[counter_i % 3];
-//     else if (i_enable) counter_i <= counter_i + 1;
-//     else begin
-//             counter_j <= counter_j;
-//             counter_i <= counter_i;
-//          end
-// end
+//state behaviour 
+always_ff @(posedge clk) begin 
+    case(state) 
+        write_mem: begin 
+            address <= counter_i;
+            data <= counter_i;
+            wren = 1'b1;
+        end 
+
+        check_done: begin
+            if(counter_i == 8'd255)
+                fsm1_done = 1'b1; 
+            else 
+                counter_i <= counter_i + 1; 
+        end
+
+        done_fill: wren <= 1'b0; 
+
+        //begin swapping 
+        start_swap: begin 
+            counter_i <= 8'b0; 
+            counter_j <= 8'b0; 
+            temp_i <= 8'b0;
+            wren <= 0;
+            temp_j <= 8'b0;
+        end 
+
+        swap_1: address <= counter_i; 
+
+        store_i: temp_i <= out_mem; 
+
+        calc_j: begin
+            address <= counter_j + out_mem + secret_key[counter_i % 3]; //don't change
+            counter_j <= counter_j + out_mem + secret_key[counter_i % 3]; 
+        end
+
+        store_j: temp_j <= out_mem; 
+
+        write_at_j: begin 
+            data <= temp_i;
+            wren <= 1'b1; 
+        end
+
+        wait_3: wren <= 1'b0; 
+
+        write_at_i: begin
+            address <= counter_i;
+            data <= temp_j; 
+            wren <= 1'b1; 
+        end 
+
+        wait_4: wren <= 1'b0; 
+
+        counter_inc: begin 
+            if(counter_i <= 8'b11111110) 
+                counter_i <= counter_i + 1'b1;
+            else   
+                swap_flag <= 1'b1;
+        end 
+
+    endcase
+end 
+
 endmodule
 
 module tb_task2_fsm();
