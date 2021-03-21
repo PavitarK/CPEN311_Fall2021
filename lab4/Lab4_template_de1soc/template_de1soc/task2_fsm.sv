@@ -247,17 +247,17 @@ always_ff @(posedge clk) begin
             wren_d <= 0;
             f <= 8'b0;
             s_f <= 8'b0;
-            address_in <= counter_k;
-            address_out <= counter_k;
         end
 
         i_inc: begin
             address <= counter_i + 1;
             counter_i <= counter_i + 1;
+            address_in <= counter_k;
+            address_out <= counter_k;
         end
 
         j_update: begin
-            counter_j = counter_j + out_mem;
+            counter_j <= counter_j + out_mem;
         end
 
         store_i2: begin
@@ -266,7 +266,7 @@ always_ff @(posedge clk) begin
         end
 
         store_j2: begin
-           temp_j <= counter_j; 
+           temp_j <= out_mem; 
         end
 
         write_j2: begin
