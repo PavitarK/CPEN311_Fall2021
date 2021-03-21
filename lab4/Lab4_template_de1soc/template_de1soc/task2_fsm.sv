@@ -19,32 +19,60 @@ logic [7:0] counter_j;
 logic [7:0] temp_i, temp_j;
 logic fsm2_active; 
 
+logic [7:0] counter_k, f, s_f;
+logic [7:0] address_in, address_out, encrypted_input, decrypted_output, data_decrypted;
+logic wren_d;
+
+
+s_memory RAM1(.address(address), .clock(clk), .data(data), .wren(wren), .q(out_mem));
+en_memory encrypted_inputROM( .address(address_in), .clock(clk), .q(encrypted_input));
+de_memory decrypted_outputRAM( .address(address_out), .clock(clk), .data(data_decrypted), .wren(wren_d), .q(decrypted_output));
+
                             //   98_7654_3210  
-parameter write_mem        = 10'b01_0000_0001; // start, set address,data, wren 
-parameter check_done       = 10'b01_0000_0011; //
-parameter done_fill        = 10'b00_0000_0111; //
+parameter write_mem        = 18'b0000_0000_01_0000_0001; // start, set address,data, wren 
+parameter check_done       = 18'b0000_0000_01_0000_0011; //
+parameter done_fill        = 18'b0000_0000_00_0000_0111; //
 
-parameter start_swap       = 10'b00_0000_0000; //reset all counters and address
-parameter swap_1           = 10'b00_0001_0000; // set address
-parameter wait_1           = 10'b00_0001_0001; // wait for outmem to update
-parameter store_i          = 10'b00_0011_0001; // store value s[i] in temp
-parameter calc_j           = 10'b00_0111_0001; // update j and address
-parameter wait_2           = 10'b00_1111_0001; // wait for out mem to update
-parameter store_j          = 10'b00_1011_0001; // store s[j] in temp 
-parameter write_at_j       = 10'b01_1001_0001; // swap s[j] value 
-parameter wait_3           = 10'b00_1001_1001; // wait lower wren 
-parameter write_at_i       = 10'b01_1001_1101; // swap s[i] value 
-parameter wait_4           = 10'b00_1001_1111; // wait lower wren 
-parameter counter_inc      = 10'b00_0001_1111; // increment i
-parameter done_swap        = 10'b10_0000_1011;
+parameter start_swap       = 18'b0000_0000_00_0000_0000; //reset all counters and address
+parameter swap_1           = 18'b0000_0000_00_0001_0000; // set address
+parameter wait_1           = 18'b0000_0000_00_0001_0001; // wait for outmem to update
+parameter store_i          = 18'b0000_0000_00_0011_0001; // store value s[i] in temp
+parameter calc_j           = 18'b0000_0000_00_0111_0001; // update j and address
+parameter wait_2           = 18'b0000_0000_00_1111_0001; // wait for out mem to update
+parameter store_j          = 18'b0000_0000_00_1011_0001; // store s[j] in temp 
+parameter write_at_j       = 18'b0000_0000_01_1001_0001; // swap s[j] value 
+parameter wait_3           = 18'b0000_0000_00_1001_1001; // wait lower wren 
+parameter write_at_i       = 18'b0000_0000_01_1001_1101; // swap s[i] value 
+parameter wait_4           = 18'b0000_0000_00_1001_1111; // wait lower wren 
+parameter counter_inc      = 18'b0000_0000_00_0001_1111; // increment i
+parameter done_swap        = 18'b0000_0000_10_0000_1011;
 
+parameter start_swap2      = 18'b0000_0001_00_0000_0000;
+parameter i_inc            = 18'b0000_0011_00_0000_0000;
+parameter wait_0s          = 18'b0000_0111_00_0000_0000;
+parameter j_update         = 18'b0000_1111_00_0000_0000;   
+parameter wait_1s          = 18'b0001_1111_00_0000_0000;
+parameter store_i2         = 18'b0011_1111_00_0000_0000;
+parameter wait_2s          = 18'b0111_1111_00_0000_0000;
+parameter store_j2         = 18'b1111_1111_00_0000_0000;
+parameter write_j2         = 18'b1111_1110_00_0000_0000;
+parameter wait_3s          = 18'b1111_1100_00_0000_0000;
+parameter write_i2         = 18'b1111_1000_00_0000_0000;
+parameter wait_4s          = 18'b1111_0000_00_0000_0000;
+parameter f_logic_i        = 18'b1110_0000_00_0000_0000;
+parameter wait_5s          = 18'b1100_0000_00_0000_0000;
+parameter f_logic_j        = 18'b1000_0000_00_0000_0000;
+parameter wait_6s          = 18'b1010_0000_00_0000_0000;
+parameter f_logic_sum      = 18'b1011_0000_00_0000_0000;
+parameter wait_7s          = 18'b1001_0000_00_0000_0000;   
+parameter decrypt_state    = 18'b1001_1000_00_0000_0000; 
+parameter check_kloop      = 18'b1000_1000_00_0000_0000;         
+parameter done_swap2       = 18'b1000_1100_00_0000_0000;    
 
-reg [9:0] state = write_mem;
+reg [17:0] state = write_mem;
 
 assign done_flag = state[9];
 assign fsm2_active = state[4];
-
-s_memory RAM1(.address(address), .clock(clk), .data(data), .wren(wren), .q(out_mem));
 
 //state controller
 always_ff @(posedge clk) begin
@@ -89,17 +117,63 @@ always_ff @(posedge clk) begin
         wait_4: state <= counter_inc;
         
         counter_inc: begin
-            if(counter_i <= 8'b11111110) 
-                state <= swap_1;
-            else 
+            if(counter_i == 8'd255) 
                 state <= done_swap;
+            else 
+                state <= swap_1;
         end
         
-        done_swap: state <= done_swap;
+        done_swap: state <= start_swap2;
+
+        //task2b bois
+        start_swap2: state <= i_inc;
+
+        i_inc: state <= wait_0s;
+
+        wait_0s: state <= j_update;
+
+        j_update: state <= wait_1s;
+
+        wait_1s: state <= store_i2;
+
+        store_i2: state <= wait_2s;
+
+        wait_2s: state <= store_j2;
+
+        store_j2: state <= write_j2;
+
+        write_j2: state <= wait_3s;
+
+        wait_3s: state <= write_i2;
+
+        write_i2: state <= wait_4s;
+
+        wait_4s: state <= f_logic_i;
+
+        f_logic_i: state <=  wait_5s;
+
+        wait_5s: state <= f_logic_j;
+
+        f_logic_j: state <= wait_6s;
+
+        wait_6s: state <= f_logic_sum;
+
+        f_logic_sum: state <= wait_7s;
+
+        wait_7s: state <= decrypt_state;
+
+        decrypt_state: state <= check_kloop;
+        
+        check_kloop: begin
+             if(counter_k <= 8'd31) state <= i_inc;
+             else state <= done_swap2; 
+        end 
+
+        done_swap2: state <= done_swap2;
 
         default: 
             begin
-                state <= 10'bz;
+                state <= 18'bz;
             end 
     endcase
 end
@@ -158,11 +232,85 @@ always_ff @(posedge clk) begin
         wait_4: wren <= 1'b0; 
 
         counter_inc: begin 
-            if(counter_i <= 8'b11111110) 
-                counter_i <= counter_i + 1'b1;
-            else   
-                swap_flag <= 1'b1;
-        end 
+            if(counter_i == 8'd255)  swap_flag <= 1'b1;
+            else  counter_i <= counter_i + 1'b1;   
+               
+        end
+
+        start_swap2: begin
+            counter_i <= 8'b0;
+            counter_j <= 8'b0;
+            counter_k <= 8'b0;
+            temp_i <= 8'b0;
+            wren <= 0;
+            temp_j <= 8'b0;
+            wren_d <= 0;
+            f <= 8'b0;
+            s_f <= 8'b0;
+            address_in <= counter_k;
+            address_out <= counter_k;
+        end
+
+        i_inc: begin
+            address <= counter_i + 1;
+            counter_i <= counter_i + 1;
+        end
+
+        j_update: begin
+            counter_j = counter_j + out_mem;
+        end
+
+        store_i2: begin
+            temp_i <= out_mem;
+            address <= counter_j;
+        end
+
+        store_j2: begin
+           temp_j <= counter_j; 
+        end
+
+        write_j2: begin
+            data <= temp_i;
+            wren <= 1'b1;
+        end
+
+        wait_3s: begin
+            wren <= 1'b0;
+        end
+
+        write_i2: begin
+            address <= counter_i;
+            data <= temp_j;
+            wren <= 1'b1;
+        end
+
+        wait_4s: begin
+            wren <= 1'b0;
+        end
+
+        f_logic_i: begin
+            address <= temp_j + temp_i;
+            s_f <= temp_j;
+        end
+
+        f_logic_j: begin
+            s_f <= s_f + temp_i;
+        end
+
+        f_logic_sum: begin
+            f <= out_mem;
+        end
+
+        decrypt_state: begin
+           wren_d <= 1'b1;
+           data_decrypted <= out_mem ^ encrypted_input;
+           counter_k <= counter_k + 1; 
+        end
+
+        check_kloop: begin 
+            wren_d <= 1'b0;
+        end
+
 
     endcase
 end 
