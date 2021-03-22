@@ -1,7 +1,7 @@
 `default_nettype none
 `timescale 1 ps / 1 ps
 
-module task2_fsm(clk, secret, secret_key, done_flag, wren, address, data, fsm2_active);
+module task2_fsm(clk, secret, secret_key, done_flag, wren, address, data, fsm2_active, crack_success);
 input logic clk;
 output logic [7:0] secret_key[3];
 output logic [23:0] secret = 24'b0; 
@@ -9,7 +9,8 @@ output logic done_flag;
 output logic [7:0] address; 
 output logic [7:0] data; 
 output logic wren; 
-output fsm2_active; 
+output fsm2_active;
+output logic [1:0] crack_success = 2'b0; 
 
 logic swap_flag;
 logic swap_done;
@@ -68,7 +69,8 @@ parameter f_logic_sum      = 18'b1011_0000_00_0000_0000;
 parameter wait_7s          = 18'b1001_0000_00_0000_0000;   
 parameter decrypt_state    = 18'b1001_1000_00_0000_0000; 
 parameter check_kloop      = 18'b1000_1000_00_0000_0000;         
-parameter done_swap2       = 18'b1000_1100_00_0000_0000;    
+parameter done_swap2       = 18'b1000_1100_00_0000_0000;
+parameter bad_message      = 18'b1000_1110_00_0000_0000;    
 
 reg [17:0] state = write_mem;
 
@@ -78,6 +80,12 @@ assign fsm2_active = state[4];
 assign secret_key[0] = secret[23:16];
 assign secret_key[1] = secret[15:8];
 assign secret_key[2] = secret[7:0];
+
+always @(posedge clk) begin
+    if (state == 18'b1000_1100_00_0000_0000) crack_success <= 2'b01;
+    else if (state == 18'b1000_1110_00_0000_0000) crack_success <= 2'b10;
+    else crack_success <= crack_success;
+end
 
 //state controller
 always_ff @(posedge clk) begin
@@ -174,7 +182,11 @@ always_ff @(posedge clk) begin
                 if(counter_k <= 8'd31) state <= i_inc;
                 else state <= done_swap2;
             end
-            else state <= write_mem; 
+            else
+            begin
+                if (secret != 24'd16777215) state <= write_mem;
+                else state <= bad_message;
+            end  
         end 
 
         done_swap2: state <= done_swap2;
@@ -318,8 +330,14 @@ always_ff @(posedge clk) begin
         check_kloop: begin 
             if (!(data_decrypted == 8'd32 || (data_decrypted >= 8'd92 && data_decrypted <= 8'd122)))
             begin
-                secret <= secret + 1;
-                counter_i <= 8'b0;
+                if (secret != 24'd16777215) begin
+                    secret <= secret + 1;
+                    counter_i <= 8'b0;
+                end
+                else begin
+                    secret <= secret;
+                    counter_i <= counter_i;
+                end
             end
             wren_d <= 1'b0; 
         end
