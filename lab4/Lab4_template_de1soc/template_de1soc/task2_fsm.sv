@@ -1,9 +1,10 @@
 `default_nettype none
 `timescale 1 ps / 1 ps
 
-module task2_fsm(clk, secret_key, done_flag, wren, address, data, fsm2_active);
+module task2_fsm(clk, secret, secret_key, done_flag, wren, address, data, fsm2_active);
 input logic clk;
-input reg [7:0] secret_key[3]; 
+output logic [7:0] secret_key[3];
+output logic [23:0] secret = 24'b0; 
 output logic done_flag;
 output logic [7:0] address; 
 output logic [7:0] data; 
@@ -17,7 +18,7 @@ logic [7:0] out_mem;
 logic [7:0] counter_i;
 logic [7:0] counter_j;
 logic [7:0] temp_i, temp_j;
-logic fsm2_active; 
+logic fsm2_active;  
 
 logic [7:0] counter_k, f, s_f;
 logic [7:0] address_in, address_out, encrypted_input, decrypted_output, data_decrypted;
@@ -73,6 +74,10 @@ reg [17:0] state = write_mem;
 
 assign done_flag = state[9];
 assign fsm2_active = state[4];
+
+assign secret_key[0] = secret[23:16];
+assign secret_key[1] = secret[15:8];
+assign secret_key[2] = secret[7:0];
 
 //state controller
 always_ff @(posedge clk) begin
@@ -165,8 +170,11 @@ always_ff @(posedge clk) begin
         decrypt_state: state <= check_kloop;
         
         check_kloop: begin
-             if(counter_k <= 8'd31) state <= i_inc;
-             else state <= done_swap2; 
+            if (data_decrypted == 8'd32 || (data_decrypted >= 8'd92 && data_decrypted <= 8'd122)) begin
+                if(counter_k <= 8'd31) state <= i_inc;
+                else state <= done_swap2;
+            end
+            else state <= write_mem; 
         end 
 
         done_swap2: state <= done_swap2;
@@ -308,7 +316,12 @@ always_ff @(posedge clk) begin
         end
 
         check_kloop: begin 
-            wren_d <= 1'b0;
+            if (!(data_decrypted == 8'd32 || (data_decrypted >= 8'd92 && data_decrypted <= 8'd122)))
+            begin
+                secret <= secret + 1;
+                counter_i <= 8'b0;
+            end
+            wren_d <= 1'b0; 
         end
 
 

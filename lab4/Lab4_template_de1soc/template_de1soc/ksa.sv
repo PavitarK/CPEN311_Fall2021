@@ -8,24 +8,24 @@ module ksa(CLOCK_50, KEY, SW, LEDR,
 //=======================================================
 
 //////////// CLOCK //////////
-input        logic               CLOCK_50;
+input                       CLOCK_50;
 
 //////////// LED //////////
-output     logic      [9:0]      LEDR;
+output           [9:0]      LEDR;
 
 //////////// KEY //////////
-input       logic     [3:0]      KEY;
+input            [3:0]      KEY;
 
 //////////// SW //////////
-input       logic     [9:0]      SW;
+input            [9:0]      SW;
 
 //////////// SEG7 //////////
-output     logic      [6:0]      HEX0;
-output      logic     [6:0]      HEX1;
-output     logic      [6:0]      HEX2;
-output      logic     [6:0]      HEX3;
-output     logic      [6:0]      HEX4;
-output      logic     [6:0]      HEX5;
+output           [6:0]      HEX0;
+output           [6:0]      HEX1;
+output           [6:0]      HEX2;
+output           [6:0]      HEX3;
+output           [6:0]      HEX4;
+output           [6:0]      HEX5;
 
 //=======================================================
 //  REG/WIRE declarations
@@ -44,11 +44,12 @@ assign LEDR[9:0] = LED[9:0];
     logic [7:0] out_mem; 
     //reg [7:0] s[256]; 
     logic done_flag_fsm1, fsm2_done; 
+    logic [23:0] secret;
     logic [7:0] secret_key [3];
     logic [7:0] data; 
     logic [1:0] fsm_active;
 
-    assign secret_key = '{8'b0 ,8'b0000_0010 ,8'b0100_1001}; 
+    //assign secret_key = '{ 8'b0, 8'd2, 8'd73}; 
     assign fsm_active = {fsm2_active, fsm1_active};
 
     //mux for RAM1 signals 
@@ -75,9 +76,14 @@ assign LEDR[9:0] = LED[9:0];
    
     //task1_fsm fillArray(.clk(CLOCK_50), .done_flag(done_flag_fsm1), .wren(wren1), .counter(counter1), .fsm1_active(fsm1_active));
     
-    task2_fsm task2(.clk(CLOCK_50), 
-                    .secret_key(secret_key), .done_flag(fsm2_done), .wren(wren2), 
-                    .address(address2), .data(data2), .fsm2_active(fsm2_active));
+    task2_fsm task2(.clk(CLOCK_50),
+                    .secret(secret), 
+                    .secret_key(secret_key), 
+                    .done_flag(fsm2_done), 
+                    .wren(wren2), 
+                    .address(address2), 
+                    .data(data2), 
+                    .fsm2_active(fsm2_active));
 
 
 endmodule 
