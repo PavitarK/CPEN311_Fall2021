@@ -328,8 +328,12 @@ DE1_SoC_QSYS U0(
 // 
 //                       Put DDS + LFSR Code Here
 //
-////////////////////////////////////////////////////////////////////		   
+////////////////////////////////////////////////////////////////////	
+reg [27:0] frequencySelect;
+assign frequencySelect = 28'd50000000; 	   
+clkDiv clock_Divider(.clock_in(CLK_50M), .clock_out(lfsr_clk), .frequencySelect(frequencySelect));
 
+lfsr lfsr_result(.clk(lfsr_clk), .q(LFSR));
 	
 (* keep = 1, preserve = 1 *) logic [11:0] actual_selected_modulation;
 (* keep = 1, preserve = 1 *) logic [11:0] actual_selected_signal;

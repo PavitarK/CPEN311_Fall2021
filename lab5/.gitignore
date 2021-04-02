@@ -9,6 +9,9 @@ c5_pin_model_dump.txt
 *.qpg
 *.qtl
 *.bak
+*.cproject
+*.project
+*.xml
 work/
 db/
 incremental_db/
