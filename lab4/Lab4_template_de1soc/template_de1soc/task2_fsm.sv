@@ -12,17 +12,23 @@ output logic wren;
 output fsm2_active;
 output logic [1:0] crack_success = 2'b0; 
 
+//temp for testing 
+//input logic [7:0] encrypted_input; 
+//input logic [7:0] out_mem; 
+
 logic swap_flag;
 logic swap_done;
 logic fsm1_done;
 logic [7:0] out_mem;
-logic [7:0] counter_i;
-logic [7:0] counter_j;
+logic [7:0] counter_i = 8'b0;
+logic [7:0] counter_j = 8'b0;
 logic [7:0] temp_i, temp_j;
 logic fsm2_active;  
 
-logic [7:0] counter_k, f, s_f;
-logic [7:0] address_in, address_out, encrypted_input, decrypted_output, data_decrypted;
+logic [7:0] f, s_f;
+logic [7:0] counter_k;
+logic [7:0] address_in, address_out,data_decrypted, decrypted_output;
+logic [7:0] encrypted_input; 
 logic wren_d;
 
 
@@ -31,46 +37,46 @@ en_memory encrypted_inputROM( .address(address_in), .clock(clk), .q(encrypted_in
 de_memory decrypted_outputRAM( .address(address_out), .clock(clk), .data(data_decrypted), .wren(wren_d), .q(decrypted_output));
 
                             //   98_7654_3210  
-parameter write_mem        = 18'b0000_0000_01_0000_0001; // start, set address,data, wren 
-parameter check_done       = 18'b0000_0000_01_0000_0011; //
-parameter done_fill        = 18'b0000_0000_00_0000_0111; //
+parameter write_mem        = 18'b0000_0000_01_0000_0001; // 257 start, set address,data, wren 
+parameter check_done       = 18'b0000_0000_01_0000_0011; // 259
+parameter done_fill        = 18'b0000_0000_00_0000_0111; // 7
 
-parameter start_swap       = 18'b0000_0000_00_0000_0000; //reset all counters and address
-parameter swap_1           = 18'b0000_0000_00_0001_0000; // set address
-parameter wait_1           = 18'b0000_0000_00_0001_0001; // wait for outmem to update
-parameter store_i          = 18'b0000_0000_00_0011_0001; // store value s[i] in temp
-parameter calc_j           = 18'b0000_0000_00_0111_0001; // update j and address
-parameter wait_2           = 18'b0000_0000_00_1111_0001; // wait for out mem to update
-parameter store_j          = 18'b0000_0000_00_1011_0001; // store s[j] in temp 
-parameter write_at_j       = 18'b0000_0000_01_1001_0001; // swap s[j] value 
-parameter wait_3           = 18'b0000_0000_00_1001_1001; // wait lower wren 
-parameter write_at_i       = 18'b0000_0000_01_1001_1101; // swap s[i] value 
-parameter wait_4           = 18'b0000_0000_00_1001_1111; // wait lower wren 
-parameter counter_inc      = 18'b0000_0000_00_0001_1111; // increment i
-parameter done_swap        = 18'b0000_0000_10_0000_1011;
+parameter start_swap       = 18'b0000_0000_00_0000_0000; // 0 reset all counters and address
+parameter swap_1           = 18'b0000_0000_00_0001_0000; // 16  set address
+parameter wait_1           = 18'b0000_0000_00_0001_0001; // 17 wait for outmem to update
+parameter store_i          = 18'b0000_0000_00_0011_0001; // 49 store value s[i] in temp
+parameter calc_j           = 18'b0000_0000_00_0111_0001; // 113 update j and address
+parameter wait_2           = 18'b0000_0000_00_1111_0001; // 241 wait for out mem to update
+parameter store_j          = 18'b0000_0000_00_1011_0001; // 177 store s[j] in temp 
+parameter write_at_j       = 18'b0000_0000_01_1001_0001; // 401 swap s[j] value 
+parameter wait_3           = 18'b0000_0000_00_1001_1001; // 153 wait lower wren 
+parameter write_at_i       = 18'b0000_0000_01_1001_1101; // 413 swap s[i] value 
+parameter wait_4           = 18'b0000_0000_00_1001_1111; // 159 wait lower wren 
+parameter counter_inc      = 18'b0000_0000_00_0001_1111; // 31 increment i
+parameter done_swap        = 18'b0000_0000_10_0000_1011; // 523 
 
-parameter start_swap2      = 18'b0000_0001_00_0000_0000;
-parameter i_inc            = 18'b0000_0011_00_0000_0000;
-parameter wait_0s          = 18'b0000_0111_00_0000_0000;
-parameter j_update         = 18'b0000_1111_00_0000_0000;   
-parameter wait_1s          = 18'b0001_1111_00_0000_0000;
-parameter store_i2         = 18'b0011_1111_00_0000_0000;
-parameter wait_2s          = 18'b0111_1111_00_0000_0000;
-parameter store_j2         = 18'b1111_1111_00_0000_0000;
-parameter write_j2         = 18'b1111_1110_00_0000_0000;
-parameter wait_3s          = 18'b1111_1100_00_0000_0000;
-parameter write_i2         = 18'b1111_1000_00_0000_0000;
-parameter wait_4s          = 18'b1111_0000_00_0000_0000;
-parameter f_logic_i        = 18'b1110_0000_00_0000_0000;
-parameter wait_5s          = 18'b1100_0000_00_0000_0000;
-parameter f_logic_j        = 18'b1000_0000_00_0000_0000;
-parameter wait_6s          = 18'b1010_0000_00_0000_0000;
-parameter f_logic_sum      = 18'b1011_0000_00_0000_0000;
-parameter wait_7s          = 18'b1001_0000_00_0000_0000;   
-parameter decrypt_state    = 18'b1001_1000_00_0000_0000; 
-parameter check_kloop      = 18'b1000_1000_00_0000_0000;         
-parameter done_swap2       = 18'b1000_1100_00_0000_0000;
-parameter bad_message      = 18'b1000_1110_00_0000_0000;    
+parameter start_swap2      = 18'b0000_0001_00_0000_0000; // 1024
+parameter i_inc            = 18'b0000_0011_00_0000_0000; // 3072
+parameter wait_0s          = 18'b0000_0111_00_0000_0000; // 7168
+parameter j_update         = 18'b0000_1111_00_0000_0000; // 15360  
+parameter wait_1s          = 18'b0001_1111_00_0000_0000; // 31744
+parameter store_i2         = 18'b0011_1111_00_0000_0000; // 64512
+parameter wait_2s          = 18'b0111_1111_00_0000_0000; // 130048
+parameter store_j2         = 18'b1111_1111_00_0000_0000; // 261120
+parameter write_j2         = 18'b1111_1110_00_0000_0000; // 260096
+parameter wait_3s          = 18'b1111_1100_00_0000_0000; // 258048
+parameter write_i2         = 18'b1111_1000_00_0000_0000; // 253952
+parameter wait_4s          = 18'b1111_0000_00_0000_0000; // 245760
+parameter f_logic_i        = 18'b1110_0000_00_0000_0000; // 229376
+parameter wait_5s          = 18'b1100_0000_00_0000_0000; // 196608
+parameter f_logic_j        = 18'b1000_0000_00_0000_0000; // 131072
+parameter wait_6s          = 18'b1010_0000_00_0000_0000; // 163840
+parameter f_logic_sum      = 18'b1011_0000_00_0000_0000; // 180224
+parameter wait_7s          = 18'b1001_0000_00_0000_0000; // 147456  
+parameter decrypt_state    = 18'b1001_1000_00_0000_0000; // 155648
+parameter check_kloop      = 18'b1000_1000_00_0000_0000; // 139264        
+parameter done_swap2       = 18'b1000_1100_00_0000_0000; // 143360
+parameter bad_message      = 18'b1000_1110_00_0000_0000; // 145408   
 
 reg [17:0] state = write_mem;
 
@@ -353,27 +359,48 @@ module tb_task2_fsm();
 //Inputs
 
 logic clk, fsm2_active;
-logic fsm1_done;
-logic [7:0] s[256];
 logic [7:0] secret_key[3]; 
+
+//temp inputs for testing
+logic [7:0] encrypted_input;
 logic [7:0] out_mem; 
 
 //Outputs
-
 logic done_flag;
 logic [7:0] address; 
 logic [7:0] data; 
 logic wren;
+logic [1:0] crack_success; 
+logic [23:0] secret;
 
-task2_fsm dut(clk, fsm1_done, out_mem, secret_key, done_flag, wren, address, data, fsm2_active);
+task2_fsm dut(clk, secret, secret_key, done_flag, wren, address, data, fsm2_active, crack_success,
+            encrypted_input, out_mem);
 
-initial
-forever #1 clk = ~clk;
+initial begin 
+    clk = 0;
+    out_mem = 0;  
+    encrypted_input = 0;
+    forever begin 
+        #1 
+        clk = ~clk;
+    end 
+end 
 
-initial
-begin
-clk = 0;
-fsm1_done = 1;
+initial begin
+    
+    #60
+    encrypted_input = 8'd50;
+    out_mem = 8'd100;
+
+    #976;
+    out_mem = 8'd22;   
+
+
+end
+
+endmodule
+
+/*
 s = '{8'd0,8'd1,8'd2,8'd3,8'd4,8'd5,8'd6,8'd7,8'd8,8'd9,
     8'd10,8'd11,8'd12,8'd13,8'd14,8'd15,8'd16,8'd17,8'd18,8'd019,
     8'd20,8'd21,8'd22,8'd23,8'd24,8'd25,8'd26,8'd27,8'd28,8'd029,
@@ -402,6 +429,4 @@ s = '{8'd0,8'd1,8'd2,8'd3,8'd4,8'd5,8'd6,8'd7,8'd8,8'd9,
     8'd250,8'd251,8'd252,8'd253,8'd254,8'd255};
     secret_key = '{8'b0 ,8'b0000_0010 ,8'b0100_1001}; 
     out_mem = 8'd128;
-end
-
-endmodule
+*/
