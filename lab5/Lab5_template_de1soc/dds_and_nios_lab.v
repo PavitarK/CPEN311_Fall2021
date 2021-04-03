@@ -330,7 +330,8 @@ DE1_SoC_QSYS U0(
 //
 ////////////////////////////////////////////////////////////////////	
 reg [27:0] frequencySelect;
-assign frequencySelect = 28'd50000000; 	   
+assign frequencySelect = 28'd50000000; 	
+logic lfsr_sync;    
 clkDiv clock_Divider(.clock_in(CLOCK_50), .clock_out(lfsr_clk), .frequencySelect(frequencySelect));
 
 lfsr lfsr_result(.clk(lfsr_clk), .q(LFSR), .reset(KEY[0]));
@@ -339,11 +340,17 @@ lfsr lfsr_result(.clk(lfsr_clk), .q(LFSR), .reset(KEY[0]));
 (* keep = 1, preserve = 1 *) logic [11:0] actual_selected_signal;
 logic [11:0] async_sig_mod, async_sig_orignal; 
 
+doublesync lfsr_syncronizer(.indata(LFSR[0]),
+				  		.outdata(lfsr_sync),
+				  		.clk(CLOCK_50),
+				  		.reset(1'b1)
+						);
+
 //step 10 
 dds modulation(.clk(CLOCK_50), 
 				.reset(1'b1), 
 				.en(1'b1),  
-				.lfsr(LFSR[0]), 
+				.lfsr(lfsr_sync), 
 				.modulation_sel(modulation_selector[1:0]),
 				.signal_sel(signal_selector[1:0]),
 				.signal_out(async_sig_mod),
