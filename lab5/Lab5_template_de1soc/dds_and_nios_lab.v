@@ -337,16 +337,30 @@ lfsr lfsr_result(.clk(lfsr_clk), .q(LFSR), .reset(KEY[0]));
 	
 (* keep = 1, preserve = 1 *) logic [11:0] actual_selected_modulation;
 (* keep = 1, preserve = 1 *) logic [11:0] actual_selected_signal;
+logic [11:0] async_sig_mod, async_sig_orignal; 
 
 //step 10 
 dds modulation(.clk(CLOCK_50), 
-					   .reset(1'b1), 
-					   .en(1'b1),  
-					   .lfsr(LFSR[0]), 
-					   .modulation_sel(modulation_selector[1:0]),
-					   .signal_sel(signal_selector[1:0]),
-					   .signal_out(actual_selected_modulation),
-					   .original_signal(actual_selected_signal));
+				.reset(1'b1), 
+				.en(1'b1),  
+				.lfsr(LFSR[0]), 
+				.modulation_sel(modulation_selector[1:0]),
+				.signal_sel(signal_selector[1:0]),
+				.signal_out(async_sig_mod),
+				.original_signal(async_sig_orignal)
+				);
+
+clk_sync_fast2slow clk_sync_modulation(.clk(CLOCK_50), 
+										.slow_clk(sampler), 
+										.data(async_sig_mod), 
+										.out(actual_selected_modulation)
+										);
+
+clk_sync_fast2slow clk_sync_signal(.clk(CLOCK_50), 
+									.slow_clk(sampler), 
+									.data(async_sig_orignal), 
+									.out(actual_selected_signal)
+									);
 
 
 ////////////////////////////////////////////////////////////////////
