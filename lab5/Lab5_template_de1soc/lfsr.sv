@@ -1,47 +1,46 @@
-module lfsr
-#(
-    parameter N = 5
-)
-(
-    clk, q
-)
+module lfsr (clk, q, reset);
 
-logic clk;
-logic [N-1:0] q = 1;
+input logic clk;
+output logic [4:0] q;
+input logic reset; 
 logic feedback_value;
+ 
+assign feedback_value = q[0] ^ q[2]; 
 
-flipflop ff1(.d(q[4]), .q(q[3]), .clk(clk));
-flipflop ff2(.d(q[3]), .q(q[2]), .clk(clk));
-flipflop ff3(.d(q[2]), .q(q[1]), .clk(clk));
-flipflop ff4(.d(q[1]), .q(q[0]), .clk(clk));
-flipflop ff5(.d(feedback_value), .q(q[4]), .clk(clk));
+always @(posedge clk or posedge reset) begin
+	if(reset) 
+		q <= 5'b1;
+	else  
+		q <= {feedback_value, q[4:1]};
+end 
 
 endmodule
 
-module flipflop(d, q, clk);
-    input d, clk;
-    output reg q;
-
-    always_ff @(posedge clk) begin
-        q <= d;
-    end
-endmodule
 
 module tb_lfsr;
 	// Inputs
 	reg clk;
+	logic reset; 
 	// Outputs
-	wire [4:0] q;
+	logic [4:0] q;
 	// Test the clock divider in Verilog
-	clkDiv uut (
+	lfsr dut(
 	 .clk(clk), 
-  	 .q(q)
+  	 .q(q),	
+	   .reset(reset)
 	);
 	initial begin
 		// Initialize Inputs
 		clk = 0;
-		// create input clock 50MHz
-		forever begin #10000000; clk = ~clk; end
+		reset = 1; 
+		// create input clock 1Hz
+		forever begin #10; clk = ~clk; end
  	end
+
+	 initial begin 
+		 #20
+		 reset = 0; 
+	 
+	 end 
       
 endmodule 
