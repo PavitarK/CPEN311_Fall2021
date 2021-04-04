@@ -37,11 +37,11 @@ module dds(clk, reset, en, lfsr, modulation_sel, signal_sel, mod_signal_out, ori
     always @(*) begin 
         if(lfsr) begin 
             ASK_signal <= 0; 
-            BPSK_signal <= ~signal + 1; 
+            BPSK_signal <= ~sin_out + 1; 
         end
         else begin
-            ASK_signal <= signal; 
-            BPSK_signal <= signal; 
+            ASK_signal <= sin_out; 
+            BPSK_signal <= sin_out; 
         end 
     end 
 
