@@ -270,8 +270,6 @@ assign VGA_BLANK_N=vga_de;
 assign VGA_CLK=video_clk_40Mhz;
 assign VGA_SYNC_N=1'b1 & SW[1];
 
-logic lfsr_clk;
-logic [4:0]LFSR;
 logic [31:0] dds_increment;
 
 /// NIOS II Qsys
@@ -331,20 +329,33 @@ DE1_SoC_QSYS U0(
 ////////////////////////////////////////////////////////////////////	
 reg [27:0] frequencySelect;
 assign frequencySelect = 28'd50000000; 	
-logic lfsr_sync;    
+logic lfsr_sync; 
+logic lfsr_clk;
+logic [4:0] LFSR;   
+//enable something 
+//phase increment
+
 clkDiv clock_Divider(.clock_in(CLOCK_50), .clock_out(lfsr_clk), .frequencySelect(frequencySelect));
 
-lfsr lfsr_result(.clk(lfsr_clk), .q(LFSR), .reset(KEY[0]));
+lfsr lfsr_result(.clk(lfsr_clk), .q(LFSR), .reset(~KEY[0]));
 	
 (* keep = 1, preserve = 1 *) logic [11:0] actual_selected_modulation;
 (* keep = 1, preserve = 1 *) logic [11:0] actual_selected_signal;
-logic [11:0] async_sig_mod, async_sig_orignal; 
+
+// logic [11:0] async_sig_mod;
+// logic [11:0] async_sig_orignal; 
+logic [11:0] sin_out, cos_out, squ_out, saw_out;
+
+logic [31:0] phase_inc = 32'd258; //tuning word 3*2^32/50*10^6 +0.5 = 258
 
 doublesync lfsr_syncronizer(.indata(LFSR[0]),
 				  		.outdata(lfsr_sync),
 				  		.clk(CLOCK_50),
 				  		.reset(1'b1)
 						);
+
+//debugging 
+assign LEDR[4:0] = LFSR; 
 
 //step 10 
 dds modulation(.clk(CLOCK_50), 
@@ -353,21 +364,25 @@ dds modulation(.clk(CLOCK_50),
 				.lfsr(lfsr_sync), 
 				.modulation_sel(modulation_selector[1:0]),
 				.signal_sel(signal_selector[1:0]),
-				.signal_out(async_sig_mod),
-				.original_signal(async_sig_orignal)
+				.mod_signal_out(actual_selected_modulation),
+				.original_signal(actual_selected_signal),
+				.sin_out(sin_out), 
+				.cos_out(cos_out), 
+				.squ_out(squ_out),
+				.saw_out(saw_out),
+				.sampler(sampler)
 				);
 
-clk_sync_fast2slow clk_sync_modulation(.clk(CLOCK_50), 
-										.slow_clk(sampler), 
-										.data(async_sig_mod), 
-										.out(actual_selected_modulation)
-										);
+waveform_gen wave(.clk(CLOCK_50), 
+				.reset(1'b1), 
+				.en(1'b1), 
+				.phase_inc(phase_inc), 
+				.sin_out(sin_out), 
+				.cos_out(cos_out), 
+				.squ_out(squ_out),
+				.saw_out(saw_out)
+				);
 
-clk_sync_fast2slow clk_sync_signal(.clk(CLOCK_50), 
-									.slow_clk(sampler), 
-									.data(async_sig_orignal), 
-									.out(actual_selected_signal)
-									);
 
 
 ////////////////////////////////////////////////////////////////////

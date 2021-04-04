@@ -1,25 +1,30 @@
-module dds(clk, reset, en, lfsr, modulation_sel, signal_sel, signal_out, original_signal);
+module dds(clk, reset, en, lfsr, modulation_sel, signal_sel, mod_signal_out, original_signal,
+           sin_out, cos_out, squ_out, saw_out, sampler);
     
-    input clk, reset, en, lfsr; 
-    input [1:0] modulation_sel, signal_sel; 
-    output [11:0] signal_out, original_signal;  
+    input logic clk, reset, en, lfsr, sampler; 
+    input logic [1:0] modulation_sel, signal_sel; 
+    output logic [11:0] mod_signal_out, original_signal;  
+    input logic [11:0] sin_out, cos_out, squ_out, saw_out;
 
-    logic [31:0] phase_inc = 32'd258; //tuning word 3*2^32/50*10^6 +0.5 = 258
-    logic [11:0] signal, ASK_signal, BPSK_signal, LFSR_signal, FSK_signal; 
-    logic [11:0] sin_out, cos_out, squ_out, saw_out; 
 
-    assign original_signal = signal; 
+    logic [11:0] signal, ASK_signal, BPSK_signal, LFSR_signal, FSK_signal, mod_signal; 
 
-    waveform_gen wave(.clk(clk), 
-                    .reset(reset), 
-                    .en(en), 
-                    .phase_inc(phase_inc), 
-                    .sin_out(sin_out), 
-                    .cos_out(cos_out), 
-                    .squ_out(squ_out),
-                    .saw_out(saw_out));
+    clk_sync_fast2slow clk_sync_modulation(.clk(CLOCK_50), 
+                                            .slow_clk(sampler), 
+                                            .data(mod_signal), 
+                                            .out(mod_signal_out)
+                                            );
+
+    clk_sync_fast2slow clk_sync_signal(.clk(CLOCK_50), 
+                                        .slow_clk(sampler), 
+                                        .data(signal), 
+                                        .out(original_signal)
+                                        );
+
+    assign LFSR_signal = 12'd11;
+    assign FSK_signal = 12'd2; 
     
-    always @(posedge clk) begin
+    always @(*) begin
         case(signal_sel)
             2'b00: signal <= sin_out; 
             2'b01: signal <= cos_out; 
@@ -29,7 +34,7 @@ module dds(clk, reset, en, lfsr, modulation_sel, signal_sel, signal_out, origina
         endcase 
     end
 
-    always @(posedge clk) begin 
+    always @(*) begin 
         if(lfsr) begin 
             ASK_signal <= 0; 
             BPSK_signal <= ~signal + 1; 
@@ -40,13 +45,13 @@ module dds(clk, reset, en, lfsr, modulation_sel, signal_sel, signal_out, origina
         end 
     end 
 
-    always @(posedge clk) begin
+    always @(*) begin
         case(modulation_sel)
-            2'b00: signal_out <= ASK_signal; 
-            2'b01: signal_out <= FSK_signal; 
-            2'b10: signal_out <= BPSK_signal; 
-            2'b11: signal_out <= LFSR_signal; 
-            default: signal_out <= signal_out; 
+            2'b00: mod_signal <= ASK_signal; 
+            2'b01: mod_signal <= FSK_signal; 
+            2'b10: mod_signal <= BPSK_signal; 
+            2'b11: mod_signal <= LFSR_signal; 
+            default: mod_signal <= mod_signal; 
         endcase
     end
          
