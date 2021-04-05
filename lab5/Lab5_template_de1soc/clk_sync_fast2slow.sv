@@ -5,7 +5,7 @@ module clk_sync_fast2slow(clk, slow_clk, data, out);
 
     logic [11:0] reg1, reg3; 
     logic enable, d1; 
-    flipflop #(.N(12)) ff1(.d(data), .q(reg1), .clk(slow_clk), .en(1'b1));
+    flipflop #(.N(12)) ff1(.d(data), .q(reg1), .clk(clk), .en(1'b1));
     flipflop #(.N(12)) ff2(.d(reg1), .q(reg3), .clk(clk), .en(enable));
     flipflop #(.N(12)) ff3(.d(reg3), .q(out), .clk(slow_clk), .en(1'b1));
 
