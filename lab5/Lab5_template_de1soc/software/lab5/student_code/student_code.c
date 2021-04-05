@@ -2,7 +2,7 @@
  * student_code.c
  *
  *  Created on: Mar 7, 2017
- *      Author: user
+ *      Author: Ahnaf and Pav :)
  */
 
 #include <system.h>
@@ -21,6 +21,19 @@ void handle_lfsr_interrupts(void* context, alt_u32 id)
 	#ifdef LFSR_CLK_INTERRUPT_GEN_BASE
 	#ifdef DDS_INCREMENT_BASE
 	
+	int value = IORD_ALTERA_AVALON_PIO_DATA(LFSR_VAL_BASE);
+	//why code this
+	if (value % 2 == 0){
+		//tuning word is 1Hz
+		IOWR_ALTERA_AVALON_PIO_DATA(DDS_INCREMENT_BASE, 86);
+	}
+	else{
+		//tuning word is 5Hz
+		IOWR_ALTERA_AVALON_PIO_DATA(DDS_INCREMENT_BASE, 430);
+	}
+	IOWR_ALTERA_AVALON_PIO_EDGE_CAP(LFSR_CLK_INTERRUPT_GEN_BASE, 0);
+	IORD_ALTERA_AVALON_PIO_EDGE_CAP(LFSR_CLK_INTERRUPT_GEN_BASE);
+
 	#endif
 	#endif
 	#endif
