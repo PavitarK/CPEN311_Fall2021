@@ -318,9 +318,9 @@ DE1_SoC_QSYS U0(
 	   
        .vga_vga_clk_clk                               (video_clk_40Mhz),                               //                     vga_vga_clk.clk
        .clk_25_out_clk                                (CLK_25MHZ),                                 //                      clk_25_out.clk
-	   .lfsr_clk_interrupt_gen_external_connection_export(lfsr_clk),
-	   .lfsr_val_external_connection_export({27'b0,LFSR[4:0]}),
-	   .dds_increment_external_connection_export(dds_increment)
+	   .lfsr_clk_interrupt_gen_external_connection_export		(lfsr_clk),
+	   .lfsr_val_external_connection_export						({27'b0,LFSR[4:0]}),
+	   .dds_increment_external_connection_export				(dds_increment)
        
 	);
 	
@@ -349,22 +349,30 @@ lfsr lfsr_result(.clk(lfsr_clk), .q(LFSR), .reset(~KEY[0]));
 // logic [11:0] async_sig_orignal; 
 logic [11:0] sin_out, cos_out, squ_out, saw_out;
 
-logic [31:0] phase_inc = 32'd258; //tuning word 3*2^32/50*10^6 +0.5 = 258
+logic [31:0] phase_inc;
+assign phase_inc = (modulation_selector[1:0] == 2'b01)? dds_increment : 32'd258; //tuning word 3*2^32/50*10^6 +0.5 = 258
+logic sampler_sync;
 
-doublesync lfsr_syncronizer(.indata(LFSR[0]),
-				  		.outdata(lfsr_sync),
+doublesync lfsr_syncronizer(.indata(sampler),
+				  		.outdata(sampler_sync),
 				  		.clk(CLOCK_50),
 				  		.reset(1'b1)
 						);
+
+clk_sync_slow2fast s2f(.clk(CLOCK_50),
+                        .slow_clk(lfsr_clk), 
+                        .data(LFSR[0]), 
+                        .out(lfsr_sync)
+                        );
 
 //debugging 
 assign LEDR[4:0] = LFSR; 
 
 //step 10 
-dds modulation(.clk(CLOCK_50), 
+dds modulation( .clk(CLOCK_50), 
 				.reset(1'b1), 
 				.en(1'b1),  
-				.lfsr(lfsr_sync), 
+				.lfsr(LFSR[0]), 
 				.modulation_sel(modulation_selector[1:0]),
 				.signal_sel(signal_selector[1:0]),
 				.mod_signal_out(actual_selected_modulation),
@@ -373,7 +381,8 @@ dds modulation(.clk(CLOCK_50),
 				.cos_out(cos_out), 
 				.squ_out(squ_out),
 				.saw_out(saw_out),
-				.sampler(sampler)
+				.sampler(sampler),
+				.sampler_sync(sampler_sync)
 				);
 
 waveform_gen wave(.clk(CLOCK_50), 

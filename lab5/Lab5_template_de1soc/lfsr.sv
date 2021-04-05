@@ -1,17 +1,15 @@
 module lfsr (clk, q, reset);
 
 input logic clk;
-output logic [4:0] q;
+output logic [4:0] q = 5'b00001;
 input logic reset; 
 logic feedback_value;
  
 assign feedback_value = q[0] ^ q[2]; 
 
-always @(posedge clk or posedge reset) begin
-	if(reset) 
-		q <= 5'b1;
-	else  
-		q <= {feedback_value, q[4:1]};
+always @(posedge clk) begin
+
+	q <= {feedback_value, q[4:1]};
 end 
 
 endmodule
@@ -27,7 +25,7 @@ module tb_lfsr;
 	lfsr dut(
 	 .clk(clk), 
   	 .q(q),	
-	   .reset(reset)
+	 .reset(reset)
 	);
 	initial begin
 		// Initialize Inputs

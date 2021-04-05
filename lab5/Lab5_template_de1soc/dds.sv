@@ -1,7 +1,7 @@
 module dds(clk, reset, en, lfsr, modulation_sel, signal_sel, mod_signal_out, original_signal,
-           sin_out, cos_out, squ_out, saw_out, sampler);
+           sin_out, cos_out, squ_out, saw_out, sampler, sampler_sync);
     
-    input logic clk, reset, en, lfsr, sampler; 
+    input logic clk, reset, en, lfsr, sampler,sampler_sync; 
     input logic [1:0] modulation_sel, signal_sel; 
     output logic [11:0] mod_signal_out, original_signal;  
     input logic [11:0] sin_out, cos_out, squ_out, saw_out;
@@ -9,50 +9,36 @@ module dds(clk, reset, en, lfsr, modulation_sel, signal_sel, mod_signal_out, ori
 
     logic [11:0] signal, ASK_signal, BPSK_signal, LFSR_signal, FSK_signal, mod_signal; 
 
-    clk_sync_fast2slow clk_sync_modulation(.clk(CLOCK_50), 
+    clk_sync_fast2slow clk_sync_modulation(.clk(clk), 
                                             .slow_clk(sampler), 
                                             .data(mod_signal), 
                                             .out(mod_signal_out)
                                             );
 
-    clk_sync_fast2slow clk_sync_signal(.clk(CLOCK_50), 
+    clk_sync_fast2slow clk_sync_signal(.clk(clk), 
                                         .slow_clk(sampler), 
                                         .data(signal), 
                                         .out(original_signal)
                                         );
 
-    assign LFSR_signal = 12'd11;
-    assign FSK_signal = 12'd2; 
+    assign LFSR_signal = 12'd1;
+    assign FSK_signal = 12'd1; 
     
     always @(*) begin
         case(signal_sel)
-            2'b00: signal <= sin_out; 
-            2'b01: signal <= cos_out; 
-            2'b10: signal <= squ_out; 
-            2'b11: signal <= saw_out;
-            default: signal <= signal; 
+            2'b00: signal = sin_out; 
+            2'b01: signal = cos_out; 
+            2'b10: signal = squ_out; 
+            2'b11: signal = saw_out;
+            default: signal = signal; 
         endcase 
     end
 
     always @(*) begin 
-        if(lfsr) begin 
-            ASK_signal <= 0; 
-            BPSK_signal <= ~sin_out + 1; 
-        end
-        else begin
-            ASK_signal <= sin_out; 
-            BPSK_signal <= sin_out; 
-        end 
-    end 
-
-    always @(*) begin
-        case(modulation_sel)
-            2'b00: mod_signal <= ASK_signal; 
-            2'b01: mod_signal <= FSK_signal; 
-            2'b10: mod_signal <= BPSK_signal; 
-            2'b11: mod_signal <= LFSR_signal; 
-            default: mod_signal <= mod_signal; 
-        endcase
+        if(modulation_sel[1:0] == 2'b00) mod_signal = lfsr? sin_out: 0; 
+		else if(modulation_sel[1:0] == 2'b01) mod_signal = sin_out; 
+		else if(modulation_sel[1:0] == 2'b10) mod_signal = lfsr? (~sin_out+1): sin_out; 
+		else if(modulation_sel[1:0] == 2'b11) mod_signal = lfsr? 12'b0:12'b100000000000;
     end
          
 endmodule
