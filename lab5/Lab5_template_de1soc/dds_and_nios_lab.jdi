@@ -1,6 +1,6 @@
 <sld_project_info>
   <project>
-    <hash md5_digest_80b="285dba7ea2bda31d1991"/>
+    <hash md5_digest_80b="820994cfa8976a339a5e"/>
   </project>
   <file_info>
     <file device="5CSEMA5F31C6" path="dds_and_nios_lab_time_limited.sof" usercode="0xFFFFFFFF"/>
@@ -100,7 +100,7 @@
     </sld_info>
     <sld_info hpath="DE1_SoC_QSYS:U0" name="U0">
       <assignment_values>
-        <assignment_value text="QSYS_NAME DE1_SoC_QSYS HAS_SOPCINFO 1 GENERATION_ID 1617581298"/>
+        <assignment_value text="QSYS_NAME DE1_SoC_QSYS HAS_SOPCINFO 1 GENERATION_ID 1617610482"/>
       </assignment_values>
       <parameters/>
     </sld_info>

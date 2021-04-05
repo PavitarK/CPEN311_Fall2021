@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <EnsembleReport name="DE1_SoC_QSYS" kind="DE1_SoC_QSYS" version="1.0" fabric="QSYS">
  <!-- Format version 14.1 186 (Future versions may contain additional information.) -->
- <!-- 2021.04.04.17:08:18 -->
+ <!-- 2021.04.05.01:14:42 -->
  <!-- A collection of modules and connections -->
  <parameter name="AUTO_GENERATION_ID">
   <type>java.lang.Integer</type>
-  <value>1617581298</value>
+  <value>1617610482</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>false</visible>
@@ -100,7 +100,7 @@
 the requested settings for a module instance. -->
   <parameter name="AUTO_GENERATION_ID">
    <type>java.lang.Integer</type>
-   <value>1617581298</value>
+   <value>1617610482</value>
    <derived>false</derived>
    <enabled>true</enabled>
    <visible>false</visible>
@@ -13799,7 +13799,7 @@ the requested settings for a module instance. -->
   </parameter>
   <parameter name="internalIrqMaskSystemInfo">
    <type>long</type>
-   <value>15</value>
+   <value>31</value>
    <derived>false</derived>
    <enabled>true</enabled>
    <visible>false</visible>
@@ -14959,6 +14959,13 @@ parameters are a RESULT of the module parameters. -->
     <slaveName>irq</slaveName>
     <name>key.irq</name>
     <interruptNumber>3</interruptNumber>
+   </interrupt>
+   <interrupt>
+    <isBridge>false</isBridge>
+    <moduleName>lfsr_clk_interrupt_gen</moduleName>
+    <slaveName>irq</slaveName>
+    <name>lfsr_clk_interrupt_gen.irq</name>
+    <interruptNumber>4</interruptNumber>
    </interrupt>
   </interface>
   <interface name="jtag_debug_module_reset" kind="reset_source" version="14.1">
@@ -28633,7 +28640,7 @@ the requested settings for a module instance. -->
   </assignment>
   <assignment>
    <name>embeddedsw.CMacro.TIMESTAMP</name>
-   <value>1617581298</value>
+   <value>1617610482</value>
   </assignment>
   <assignment>
    <name>embeddedsw.dts.compatible</name>
@@ -28653,7 +28660,7 @@ the requested settings for a module instance. -->
   </assignment>
   <assignment>
    <name>embeddedsw.dts.params.timestamp</name>
-   <value>1617581298</value>
+   <value>1617610482</value>
   </assignment>
   <assignment>
    <name>embeddedsw.dts.vendor</name>
@@ -28669,7 +28676,7 @@ the requested settings for a module instance. -->
   </parameter>
   <parameter name="timestamp">
    <type>int</type>
-   <value>1617581298</value>
+   <value>1617610482</value>
    <derived>false</derived>
    <enabled>false</enabled>
    <visible>false</visible>
@@ -29915,7 +29922,7 @@ parameters are a RESULT of the module parameters. -->
 the requested settings for a module instance. -->
   <parameter name="AUTO_GENERATION_ID">
    <type>java.lang.Integer</type>
-   <value>1617581298</value>
+   <value>1617610482</value>
    <derived>false</derived>
    <enabled>true</enabled>
    <visible>false</visible>
@@ -40786,6 +40793,41 @@ parameters are a RESULT of the module parameters. -->
   <endConnectionPoint>irq</endConnectionPoint>
  </connection>
  <connection
+   name="cpu.d_irq/lfsr_clk_interrupt_gen.irq"
+   kind="interrupt"
+   version="14.1"
+   start="cpu.d_irq"
+   end="lfsr_clk_interrupt_gen.irq">
+  <parameter name="irqNumber">
+   <type>int</type>
+   <value>4</value>
+   <derived>false</derived>
+   <enabled>true</enabled>
+   <visible>true</visible>
+   <valid>true</valid>
+  </parameter>
+  <parameter name="deviceFamily">
+   <type>java.lang.String</type>
+   <value>UNKNOWN</value>
+   <derived>false</derived>
+   <enabled>true</enabled>
+   <visible>true</visible>
+   <valid>true</valid>
+  </parameter>
+  <parameter name="generateLegacySim">
+   <type>boolean</type>
+   <value>false</value>
+   <derived>false</derived>
+   <enabled>true</enabled>
+   <visible>true</visible>
+   <valid>true</valid>
+  </parameter>
+  <startModule>cpu</startModule>
+  <startConnectionPoint>d_irq</startConnectionPoint>
+  <endModule>lfsr_clk_interrupt_gen</endModule>
+  <endConnectionPoint>irq</endConnectionPoint>
+ </connection>
+ <connection
    name="clk_50.clk_reset/vga_clk_50M.clk_in_reset"
    kind="reset"
    version="14.1"
@@ -41590,7 +41632,7 @@ parameters are a RESULT of the module parameters. -->
   <version>14.1</version>
  </plugin>
  <plugin>
-  <instanceCount>4</instanceCount>
+  <instanceCount>5</instanceCount>
   <name>interrupt</name>
   <type>com.altera.entityinterfaces.IElementClass</type>
   <subtype>com.altera.entityinterfaces.IConnection</subtype>

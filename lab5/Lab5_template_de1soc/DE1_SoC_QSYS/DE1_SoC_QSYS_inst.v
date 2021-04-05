@@ -12,9 +12,12 @@
 		.clk_clk                                           (<connected-to-clk_clk>),                                           //                                        clk.clk
 		.clk_25_out_clk                                    (<connected-to-clk_25_out_clk>),                                    //                                 clk_25_out.clk
 		.clk_sdram_clk                                     (<connected-to-clk_sdram_clk>),                                     //                                  clk_sdram.clk
+		.dds_increment_external_connection_export          (<connected-to-dds_increment_external_connection_export>),          //          dds_increment_external_connection.export
 		.div_freq_export                                   (<connected-to-div_freq_export>),                                   //                                   div_freq.export
 		.key_external_connection_export                    (<connected-to-key_external_connection_export>),                    //                    key_external_connection.export
 		.keyboard_keys_export                              (<connected-to-keyboard_keys_export>),                              //                              keyboard_keys.export
+		.lfsr_clk_interrupt_gen_external_connection_export (<connected-to-lfsr_clk_interrupt_gen_external_connection_export>), // lfsr_clk_interrupt_gen_external_connection.export
+		.lfsr_val_external_connection_export               (<connected-to-lfsr_val_external_connection_export>),               //               lfsr_val_external_connection.export
 		.modulation_selector_export                        (<connected-to-modulation_selector_export>),                        //                        modulation_selector.export
 		.mouse_pos_export                                  (<connected-to-mouse_pos_export>),                                  //                                  mouse_pos.export
 		.pll_locked_export                                 (<connected-to-pll_locked_export>),                                 //                                 pll_locked.export
@@ -38,9 +41,6 @@
 		.vga_alt_vip_itc_0_clocked_video_vid_f             (<connected-to-vga_alt_vip_itc_0_clocked_video_vid_f>),             //                                           .vid_f
 		.vga_alt_vip_itc_0_clocked_video_vid_h             (<connected-to-vga_alt_vip_itc_0_clocked_video_vid_h>),             //                                           .vid_h
 		.vga_alt_vip_itc_0_clocked_video_vid_v             (<connected-to-vga_alt_vip_itc_0_clocked_video_vid_v>),             //                                           .vid_v
-		.vga_vga_clk_clk                                   (<connected-to-vga_vga_clk_clk>),                                   //                                vga_vga_clk.clk
-		.lfsr_clk_interrupt_gen_external_connection_export (<connected-to-lfsr_clk_interrupt_gen_external_connection_export>), // lfsr_clk_interrupt_gen_external_connection.export
-		.lfsr_val_external_connection_export               (<connected-to-lfsr_val_external_connection_export>),               //               lfsr_val_external_connection.export
-		.dds_increment_external_connection_export          (<connected-to-dds_increment_external_connection_export>)           //          dds_increment_external_connection.export
+		.vga_vga_clk_clk                                   (<connected-to-vga_vga_clk_clk>)                                    //                                vga_vga_clk.clk
 	);
 

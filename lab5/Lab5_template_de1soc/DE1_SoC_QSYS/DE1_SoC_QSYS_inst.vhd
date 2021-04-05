@@ -13,9 +13,12 @@
 			clk_clk                                           : in    std_logic                     := 'X';             -- clk
 			clk_25_out_clk                                    : out   std_logic;                                        -- clk
 			clk_sdram_clk                                     : out   std_logic;                                        -- clk
+			dds_increment_external_connection_export          : out   std_logic_vector(31 downto 0);                    -- export
 			div_freq_export                                   : out   std_logic_vector(31 downto 0);                    -- export
 			key_external_connection_export                    : in    std_logic_vector(3 downto 0)  := (others => 'X'); -- export
 			keyboard_keys_export                              : in    std_logic_vector(31 downto 0) := (others => 'X'); -- export
+			lfsr_clk_interrupt_gen_external_connection_export : in    std_logic                     := 'X';             -- export
+			lfsr_val_external_connection_export               : in    std_logic_vector(31 downto 0) := (others => 'X'); -- export
 			modulation_selector_export                        : out   std_logic_vector(3 downto 0);                     -- export
 			mouse_pos_export                                  : in    std_logic_vector(31 downto 0) := (others => 'X'); -- export
 			pll_locked_export                                 : out   std_logic;                                        -- export
@@ -39,10 +42,7 @@
 			vga_alt_vip_itc_0_clocked_video_vid_f             : out   std_logic;                                        -- vid_f
 			vga_alt_vip_itc_0_clocked_video_vid_h             : out   std_logic;                                        -- vid_h
 			vga_alt_vip_itc_0_clocked_video_vid_v             : out   std_logic;                                        -- vid_v
-			vga_vga_clk_clk                                   : out   std_logic;                                        -- clk
-			lfsr_clk_interrupt_gen_external_connection_export : in    std_logic                     := 'X';             -- export
-			lfsr_val_external_connection_export               : in    std_logic_vector(31 downto 0) := (others => 'X'); -- export
-			dds_increment_external_connection_export          : out   std_logic_vector(31 downto 0)                     -- export
+			vga_vga_clk_clk                                   : out   std_logic                                         -- clk
 		);
 	end component DE1_SoC_QSYS;
 
@@ -61,9 +61,12 @@
 			clk_clk                                           => CONNECTED_TO_clk_clk,                                           --                                        clk.clk
 			clk_25_out_clk                                    => CONNECTED_TO_clk_25_out_clk,                                    --                                 clk_25_out.clk
 			clk_sdram_clk                                     => CONNECTED_TO_clk_sdram_clk,                                     --                                  clk_sdram.clk
+			dds_increment_external_connection_export          => CONNECTED_TO_dds_increment_external_connection_export,          --          dds_increment_external_connection.export
 			div_freq_export                                   => CONNECTED_TO_div_freq_export,                                   --                                   div_freq.export
 			key_external_connection_export                    => CONNECTED_TO_key_external_connection_export,                    --                    key_external_connection.export
 			keyboard_keys_export                              => CONNECTED_TO_keyboard_keys_export,                              --                              keyboard_keys.export
+			lfsr_clk_interrupt_gen_external_connection_export => CONNECTED_TO_lfsr_clk_interrupt_gen_external_connection_export, -- lfsr_clk_interrupt_gen_external_connection.export
+			lfsr_val_external_connection_export               => CONNECTED_TO_lfsr_val_external_connection_export,               --               lfsr_val_external_connection.export
 			modulation_selector_export                        => CONNECTED_TO_modulation_selector_export,                        --                        modulation_selector.export
 			mouse_pos_export                                  => CONNECTED_TO_mouse_pos_export,                                  --                                  mouse_pos.export
 			pll_locked_export                                 => CONNECTED_TO_pll_locked_export,                                 --                                 pll_locked.export
@@ -87,9 +90,6 @@
 			vga_alt_vip_itc_0_clocked_video_vid_f             => CONNECTED_TO_vga_alt_vip_itc_0_clocked_video_vid_f,             --                                           .vid_f
 			vga_alt_vip_itc_0_clocked_video_vid_h             => CONNECTED_TO_vga_alt_vip_itc_0_clocked_video_vid_h,             --                                           .vid_h
 			vga_alt_vip_itc_0_clocked_video_vid_v             => CONNECTED_TO_vga_alt_vip_itc_0_clocked_video_vid_v,             --                                           .vid_v
-			vga_vga_clk_clk                                   => CONNECTED_TO_vga_vga_clk_clk,                                   --                                vga_vga_clk.clk
-			lfsr_clk_interrupt_gen_external_connection_export => CONNECTED_TO_lfsr_clk_interrupt_gen_external_connection_export, -- lfsr_clk_interrupt_gen_external_connection.export
-			lfsr_val_external_connection_export               => CONNECTED_TO_lfsr_val_external_connection_export,               --               lfsr_val_external_connection.export
-			dds_increment_external_connection_export          => CONNECTED_TO_dds_increment_external_connection_export           --          dds_increment_external_connection.export
+			vga_vga_clk_clk                                   => CONNECTED_TO_vga_vga_clk_clk                                    --                                vga_vga_clk.clk
 		);
 

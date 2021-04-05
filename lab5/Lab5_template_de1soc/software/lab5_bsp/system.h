@@ -4,7 +4,7 @@
  * Machine generated for CPU 'cpu' in SOPC Builder design 'DE1_SoC_QSYS'
  * SOPC Builder design path: ../../DE1_SoC_QSYS.sopcinfo
  *
- * Generated: Sun Apr 04 18:17:11 PDT 2021
+ * Generated: Mon Apr 05 01:26:50 PDT 2021
  */
 
 /*
@@ -596,8 +596,8 @@
 #define LFSR_CLK_INTERRUPT_GEN_HAS_IN 1
 #define LFSR_CLK_INTERRUPT_GEN_HAS_OUT 0
 #define LFSR_CLK_INTERRUPT_GEN_HAS_TRI 0
-#define LFSR_CLK_INTERRUPT_GEN_IRQ -1
-#define LFSR_CLK_INTERRUPT_GEN_IRQ_INTERRUPT_CONTROLLER_ID -1
+#define LFSR_CLK_INTERRUPT_GEN_IRQ 4
+#define LFSR_CLK_INTERRUPT_GEN_IRQ_INTERRUPT_CONTROLLER_ID 0
 #define LFSR_CLK_INTERRUPT_GEN_IRQ_TYPE "EDGE"
 #define LFSR_CLK_INTERRUPT_GEN_NAME "/dev/lfsr_clk_interrupt_gen"
 #define LFSR_CLK_INTERRUPT_GEN_RESET_VALUE 0
@@ -764,7 +764,7 @@
 #define SYSID_QSYS_IRQ_INTERRUPT_CONTROLLER_ID -1
 #define SYSID_QSYS_NAME "/dev/sysid_qsys"
 #define SYSID_QSYS_SPAN 8
-#define SYSID_QSYS_TIMESTAMP 1617581298
+#define SYSID_QSYS_TIMESTAMP 1617610482
 #define SYSID_QSYS_TYPE "altera_avalon_sysid_qsys"
 
 
