@@ -317,7 +317,10 @@ DE1_SoC_QSYS U0(
 	   .audio_sel_export                              (audio_selector),                               //                       audio_sel.export
 	   
        .vga_vga_clk_clk                               (video_clk_40Mhz),                               //                     vga_vga_clk.clk
-       .clk_25_out_clk                                (CLK_25MHZ)                                 //                      clk_25_out.clk
+       .clk_25_out_clk                                (CLK_25MHZ),                                 //                      clk_25_out.clk
+	   .lfsr_clk_interrupt_gen_external_connection_export(lfsr_clk),
+	   .lfsr_val_external_connection_export({27'b0,LFSR[4:0]}),
+	   .dds_increment_external_connection_export(dds_increment)
        
 	);
 	
