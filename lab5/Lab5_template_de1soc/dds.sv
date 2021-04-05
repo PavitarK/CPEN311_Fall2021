@@ -21,25 +21,30 @@ module dds(clk, reset, en, lfsr, modulation_sel, signal_sel, mod_signal_out, ori
                                         .out(original_signal)
                                         );
 
-    assign LFSR_signal = 12'd1;
-    assign FSK_signal = 12'd1; 
     
     always @(*) begin
         case(signal_sel)
             2'b00: signal = sin_out; 
             2'b01: signal = cos_out; 
-            2'b10: signal = squ_out; 
-            2'b11: signal = saw_out;
+            2'b10: signal = saw_out; 
+            2'b11: signal = squ_out;
             default: signal = signal; 
         endcase 
     end
 
-    always @(*) begin 
-        if(modulation_sel[1:0] == 2'b00) mod_signal = lfsr? sin_out: 0; 
-		else if(modulation_sel[1:0] == 2'b01) mod_signal = sin_out; 
-		else if(modulation_sel[1:0] == 2'b10) mod_signal = lfsr? (~sin_out+1): sin_out; 
-		else if(modulation_sel[1:0] == 2'b11) mod_signal = lfsr? 12'b0:12'b100000000000;
+    always @(*) begin
+        case(modulation_sel) 
+            2'b00: mod_signal = lfsr ? 0 : sin_out; 
+            2'b01: mod_signal = sin_out; 
+            2'b10: mod_signal = lfsr ? (~sin_out + 1) : sin_out; 
+            2'b11: mod_signal = lfsr ? 12'b0 : 12'b1000_0000_0000; 
+        endcase 
     end
+
+        //     if(modulation_sel[1:0] == 2'b00) mod_signal = lfsr? sin_out: 0; 
+		// else if(modulation_sel[1:0] == 2'b01) mod_signal = sin_out; 
+		// else if(modulation_sel[1:0] == 2'b10) mod_signal = lfsr? (~sin_out+1): sin_out; 
+		// else if(modulation_sel[1:0] == 2'b11) mod_signal = lfsr? 12'b0:12'b100000000000;
          
 endmodule
 
