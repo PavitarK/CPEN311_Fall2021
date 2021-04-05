@@ -335,30 +335,23 @@ assign frequencySelect = 28'd50000000;
 logic lfsr_sync; 
 logic lfsr_clk;
 logic [4:0] LFSR;   
-//enable something 
-//phase increment
 
 clkDiv clock_Divider(.clock_in(CLOCK_50), .clock_out(lfsr_clk), .frequencySelect(frequencySelect));
 
-lfsr lfsr_result(.clk(lfsr_clk), .q(LFSR), .reset(~KEY[0]));
+lfsr lfsr_result(.clk(lfsr_clk), .q(LFSR));
 	
 (* keep = 1, preserve = 1 *) logic [11:0] actual_selected_modulation;
 (* keep = 1, preserve = 1 *) logic [11:0] actual_selected_signal;
 
-// logic [11:0] async_sig_mod;
-// logic [11:0] async_sig_orignal; 
+
 logic [11:0] sin_out, cos_out, squ_out, saw_out;
 
 logic [31:0] phase_inc;
+
+//For FSK modulation 
 assign phase_inc = (modulation_selector[1:0] == 2'b01)? dds_increment : 32'd258; //tuning word 3*2^32/50*10^6 +0.5 = 258
-logic sampler_sync;
 
-doublesync lfsr_syncronizer(.indata(sampler),
-				  		.outdata(sampler_sync),
-				  		.clk(CLOCK_50),
-				  		.reset(1'b1)
-						);
-
+//crossing clock domain lfsr 1Hz to 50Mhz
 clk_sync_slow2fast s2f(.clk(CLOCK_50),
                         .slow_clk(lfsr_clk), 
                         .data(LFSR[0]), 
@@ -370,7 +363,6 @@ assign LEDR[4:0] = LFSR;
 
 //step 10 
 dds modulation( .clk(CLOCK_50), 
-				.reset(1'b1), 
 				.en(1'b1),  
 				.lfsr(LFSR[0]), 
 				.modulation_sel(modulation_selector[1:0]),
@@ -382,9 +374,9 @@ dds modulation( .clk(CLOCK_50),
 				.squ_out(squ_out),
 				.saw_out(saw_out),
 				.sampler(sampler),
-				.sampler_sync(sampler_sync)
 				);
 
+//Generate all waveforms at 3Hz
 waveform_gen wave(.clk(CLOCK_50), 
 				.reset(1'b1), 
 				.en(1'b1), 

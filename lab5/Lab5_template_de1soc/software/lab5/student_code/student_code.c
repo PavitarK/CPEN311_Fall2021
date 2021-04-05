@@ -22,7 +22,7 @@ void handle_lfsr_interrupts(void* context, alt_u32 id)
 	#ifdef DDS_INCREMENT_BASE
 	
 	int value = IORD_ALTERA_AVALON_PIO_DATA(LFSR_VAL_BASE);
-	//why code this
+	//check last bit and set FSK accordingly 
 	if (value % 2 == 0){
 		//tuning word is 1Hz
 		IOWR_ALTERA_AVALON_PIO_DATA(DDS_INCREMENT_BASE, 0x56);
@@ -31,6 +31,7 @@ void handle_lfsr_interrupts(void* context, alt_u32 id)
 		//tuning word is 5Hz
 		IOWR_ALTERA_AVALON_PIO_DATA(DDS_INCREMENT_BASE, 0x1AE);
 	}
+	//reset interrupt 
 	IOWR_ALTERA_AVALON_PIO_EDGE_CAP(LFSR_CLK_INTERRUPT_GEN_BASE, 0x0);
 	IORD_ALTERA_AVALON_PIO_EDGE_CAP(LFSR_CLK_INTERRUPT_GEN_BASE);
 

@@ -1,27 +1,29 @@
-module dds(clk, reset, en, lfsr, modulation_sel, signal_sel, mod_signal_out, original_signal,
-           sin_out, cos_out, squ_out, saw_out, sampler, sampler_sync);
+module dds(clk, en, lfsr, modulation_sel, signal_sel, mod_signal_out, original_signal,
+           sin_out, cos_out, squ_out, saw_out, sampler);
     
-    input logic clk, reset, en, lfsr, sampler,sampler_sync; 
+    input logic clk, en, lfsr, sampler; 
     input logic [1:0] modulation_sel, signal_sel; 
     output logic [11:0] mod_signal_out, original_signal;  
     input logic [11:0] sin_out, cos_out, squ_out, saw_out;
 
 
-    logic [11:0] signal, ASK_signal, BPSK_signal, LFSR_signal, FSK_signal, mod_signal; 
+    logic [11:0] signal, mod_signal; 
 
+    //crossing clock domain 50Mhz to 200Hz
     clk_sync_fast2slow clk_sync_modulation(.clk(clk), 
                                             .slow_clk(sampler), 
                                             .data(mod_signal), 
                                             .out(mod_signal_out)
                                             );
 
+    //crossing clock domain 50Mhz to 200Hz
     clk_sync_fast2slow clk_sync_signal(.clk(clk), 
                                         .slow_clk(sampler), 
                                         .data(signal), 
                                         .out(original_signal)
                                         );
 
-    
+    //original signal controller
     always @(*) begin
         case(signal_sel)
             2'b00: signal = sin_out; 
@@ -32,6 +34,7 @@ module dds(clk, reset, en, lfsr, modulation_sel, signal_sel, mod_signal_out, ori
         endcase 
     end
 
+    //modulated signal controller
     always @(*) begin
         case(modulation_sel) 
             2'b00: mod_signal = lfsr ? 0 : sin_out; 
@@ -40,33 +43,74 @@ module dds(clk, reset, en, lfsr, modulation_sel, signal_sel, mod_signal_out, ori
             2'b11: mod_signal = lfsr ? 12'b0 : 12'b1000_0000_0000; 
         endcase 
     end
-
-        //     if(modulation_sel[1:0] == 2'b00) mod_signal = lfsr? sin_out: 0; 
-		// else if(modulation_sel[1:0] == 2'b01) mod_signal = sin_out; 
-		// else if(modulation_sel[1:0] == 2'b10) mod_signal = lfsr? (~sin_out+1): sin_out; 
-		// else if(modulation_sel[1:0] == 2'b11) mod_signal = lfsr? 12'b0:12'b100000000000;
          
 endmodule
 
-// module tb_modulation;
-// 	// Inputs
-// 	reg clk, reset, en;
-// 	// Outputs
-// 	logic [11:0] sin_out, cos_out, squ_out saw_out;
-// 	// Test the clock divider in Verilog
-// 	modulation dut(clk, reset, en, sin_out, cos_out, squ_out, saw_out);
-// 	initial begin
-// 		// Initialize Inputs
-// 		clk = 0;
-// 		reset = 1; 
-// 		// create input clock 1Hz
-// 		forever begin #10; clk = ~clk; end
-//  	end
+module tb_modulation();
 
-// 	 initial begin 
-// 		 #100
-// 		 reset = 1; 
+	// Inputs
+	reg clk, en, lfsr, sampler;
+    logic [1:0] modulation_sel, signal_sel; 
+	logic [11:0] sin_out, cos_out, squ_out, saw_out;
+
+    //outputs 
+    logic [11:0] mod_signal_out, original_signal;
+
+	// Test the clock divider in Verilog
+	dds dut(clk, en, lfsr, modulation_sel, signal_sel, mod_signal_out, original_signal,
+            sin_out, cos_out, squ_out, saw_out, sampler);
+
+	    initial begin
+		// Initialize Inputs
+		clk = 0;
+        en = 1; 
+        lfsr = 1; 
+        sin_out = 12'd2; 
+        cos_out = 12'd4; 
+        squ_out = 12'd6; 
+        saw_out = 12'd8; 
+        modulation_sel = 2'b00; 
+        signal_sel = 2'b00; 
+		// create input clock 1Hz
+		    forever begin #10; clk = ~clk; 
+            end
+ 	    end
+
+        initial begin 
+            sampler = 0; 
+         forever begin
+             #20
+            sampler = ~ sampler; 
+         end
+        end 
+
+
+	 initial begin 
+        #40; 
+        modulation_sel = 2'b00; 
+        signal_sel = 2'b01;
+        #40; 
+        modulation_sel = 2'b00; 
+        signal_sel = 2'b10;  
+        #40; 
+        modulation_sel = 2'b00; 
+        signal_sel = 2'b11; 
+        #40; 
+        modulation_sel = 2'b01; 
+        signal_sel = 2'b00;
+        #40; 
+        modulation_sel = 2'b01; 
+        signal_sel = 2'b01;
+        #40; 
+        modulation_sel = 2'b01; 
+        signal_sel = 2'b10;
+        #40; 
+        modulation_sel = 2'b11; 
+        signal_sel = 2'b00;
+        #40; 
+        modulation_sel = 2'b11; 
+        signal_sel = 2'b10;
 	 
-// 	 end 
+	 end 
       
-// endmodule 
+endmodule 
